@@ -210,7 +210,7 @@ export default function UrgeSurferPage() {
                   </button>
                   <button
                     onClick={handleStart}
-                    className="rounded-full bg-accent px-8 py-3 text-sm font-semibold text-black hover:opacity-90"
+                    className="rounded-full bg-accent px-8 py-3 text-sm font-semibold text-accent-contrast hover:opacity-90"
                   >
                     Start
                   </button>
@@ -222,7 +222,7 @@ export default function UrgeSurferPage() {
                   {engine.state.isPaused ? (
                     <button
                       onClick={engine.resume}
-                      className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-black hover:opacity-90"
+                      className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
                     >
                       Resume
                     </button>
@@ -252,7 +252,7 @@ export default function UrgeSurferPage() {
                   <UrgeScale label="Current urge" value={urgeAfter} onChange={setUrgeAfter} />
                   <button
                     onClick={() => confirmUrgeAfter(urgeAfter ?? 5)}
-                    className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-black hover:opacity-90"
+                    className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
                   >
                     Continue
                   </button>
@@ -296,7 +296,7 @@ export default function UrgeSurferPage() {
                 <div className="mt-2 flex gap-2">
                   <button
                     onClick={() => setRhythmResult(null)}
-                    className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+                    className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
                   >
                     Repeat
                   </button>
@@ -321,7 +321,7 @@ export default function UrgeSurferPage() {
                 <div className="mt-2 flex gap-2">
                   <button
                     onClick={() => setGroundComplete(false)}
-                    className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+                    className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
                   >
                     Repeat
                   </button>

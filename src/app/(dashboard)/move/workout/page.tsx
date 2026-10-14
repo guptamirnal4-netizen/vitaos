@@ -154,7 +154,7 @@ export default function WorkoutPage() {
                     exercises: customWorkoutDraft,
                   })
                 }
-                className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+                className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
               >
                 Start Workout
               </button>
@@ -187,7 +187,7 @@ export default function WorkoutPage() {
               </ol>
               <button
                 onClick={() => startWorkout(t)}
-                className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+                className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
               >
                 Start Workout
               </button>
@@ -268,7 +268,7 @@ export default function WorkoutPage() {
           Set {Math.min(completedSets + 1, currentExerciseRef.sets)} / {currentExerciseRef.sets}
         </div>
 
-        <button onClick={completeSet} className="rounded-full bg-accent px-8 py-3 text-sm font-semibold text-black hover:opacity-90">
+        <button onClick={completeSet} className="rounded-full bg-accent px-8 py-3 text-sm font-semibold text-accent-contrast hover:opacity-90">
           Complete Set
         </button>
 
@@ -310,7 +310,7 @@ export default function WorkoutPage() {
         {finalStats.durationMinutes} minutes · {finalStats.exerciseCount} exercises · {finalStats.setCount} sets
       </div>
       <div className="flex flex-wrap justify-center gap-2">
-        <a href="/move/progress" className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90">
+        <a href="/move/progress" className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90">
           View Progress
         </a>
         <button

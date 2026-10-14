@@ -1,33 +1,51 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens. Evergreen + warm neutrals, tuned for WCAG AA:
+ * - foreground / muted pass 4.5:1 on background, surface and surface-2.
+ * - accent-contrast is the text colour for anything filled with accent.
+ * - highlight is a restrained warm accent for fills/dots only — never body text.
+ */
 :root {
-  --background: #f4f5f7;
-  --foreground: #14181d;
+  --background: #f7f8f4;
+  --foreground: #182a25;
   --surface: #ffffff;
-  --surface-2: #eceef1;
-  --border: #dde1e6;
-  --muted: #6b7280;
-  --accent: #10b981;
-  --accent-foreground: #065f46;
-  --success: #10b981;
-  --warning: #d97706;
-  --danger: #e11d48;
-  --winter: #0891b2;
+  --surface-2: #e6f1ea;
+  --border: #dce4de;
+  --border-strong: #b9c7bd;
+  --muted: #5b6a63;
+  --accent: #1e5b4f;
+  --accent-foreground: #1e5b4f;
+  --accent-contrast: #ffffff;
+  --highlight: #e58b58;
+  --success: #2e7d4f;
+  --warning: #a15c07;
+  --danger: #c2362b;
+  --danger-contrast: #ffffff;
+  --winter: #0e7490;
+  --focus-ring: #1e5b4f;
+  --shadow-color: 24 42 37;
 }
 
 :root[data-theme="dark"] {
-  --background: #0b0d10;
-  --foreground: #f5f6f7;
-  --surface: #14181d;
-  --surface-2: #1b2027;
-  --border: #ffffff1a;
-  --muted: #9aa1ab;
+  --background: #0b1110;
+  --foreground: #f2f6f3;
+  --surface: #121c19;
+  --surface-2: #1a2924;
+  --border: #2a3933;
+  --border-strong: #3d5249;
+  --muted: #a7b5ae;
   --accent: #34d399;
   --accent-foreground: #34d399;
-  --success: #34d399;
+  --accent-contrast: #062b20;
+  --highlight: #f0a274;
+  --success: #4ade80;
   --warning: #fbbf24;
-  --danger: #fb7185;
+  --danger: #f87171;
+  --danger-contrast: #2a0a0a;
   --winter: #22d3ee;
+  --focus-ring: #6ee7b7;
+  --shadow-color: 0 0 0;
 }
 
 @theme inline {
@@ -36,15 +54,30 @@
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-highlight: var(--highlight);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+  --color-danger-contrast: var(--danger-contrast);
   --color-winter: var(--winter);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --shadow-card: 0 1px 2px rgb(var(--shadow-color) / 0.05), 0 1px 3px rgb(var(--shadow-color) / 0.04);
+  --shadow-overlay: 0 12px 32px rgb(var(--shadow-color) / 0.18), 0 2px 6px rgb(var(--shadow-color) / 0.08);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 body {
@@ -55,6 +88,40 @@ body {
 
 * {
   border-color: var(--border);
+}
+
+/* Tailwind v4 dropped the pointer cursor on buttons; restore it for anything clickable. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+summary {
+  cursor: pointer;
+}
+
+/* One visible focus treatment everywhere, keyboard only. */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* User-generated text (names, chat, place labels) must wrap instead of widening the page. */
+.break-anywhere {
+  overflow-wrap: anywhere;
+}
+
+/* Bottom spacing that clears the iOS home indicator. */
+.pb-safe {
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Brand logo: both theme treatments render; the theme hides the other one. */

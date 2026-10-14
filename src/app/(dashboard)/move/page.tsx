@@ -72,7 +72,7 @@ export default function MoveOverviewPage() {
         </div>
         <Link
           href="/connect"
-          className="mt-4 inline-block rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+          className="mt-4 inline-block rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
         >
           Continue Activity
         </Link>

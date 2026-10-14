@@ -55,6 +55,24 @@ across every tab.
 - **[Leaflet](https://leafletjs.com)** + OpenStreetMap / Nominatim — the Find a Friend area picker and radar map
 - **[pg](https://node-postgres.com)** (Postgres) — the real backend behind Connect: friends, Find a Friend, groups, chat, and milestones
 
+## Design system
+
+All colour comes from CSS tokens in `src/app/globals.css` (light + dark), exposed to
+Tailwind as `bg-surface`, `text-muted`, `bg-accent`, etc. Don't hard-code colours in
+components.
+
+- **Palette** — evergreen accent (`#1E5B4F` light / `#34D399` dark) on warm neutrals.
+  `foreground` and `muted` pass WCAG AA (4.5:1) on `background`, `surface` and `surface-2`.
+- **On-accent text** — anything filled with `bg-accent` uses `text-accent-contrast`
+  (likewise `bg-danger` → `text-danger-contrast`); never `text-black`/`text-white`.
+- **Highlight** (`bg-highlight`) is a warm accent for small fills and dots only — it is
+  not contrast-safe as text.
+- **Primitives** — `ui/Button` (`buttonClass()` for links), `ui/Dialog` (focus trap, Esc,
+  bottom sheet on phones), `shell/PageHeader` (page `<h1>` + wrapping actions slot),
+  `shell/SubNav` (module tabs that wrap instead of scrolling sideways).
+- **Layout rules** — the shell's content column is `min-w-0`, so nothing can widen the page;
+  long user text uses `break-anywhere`; touch targets are ≥ 36 px (`sm`) / 44 px (`md`).
+
 ## Getting started
 
 ```bash

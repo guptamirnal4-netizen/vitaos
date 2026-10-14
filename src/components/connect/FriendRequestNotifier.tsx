@@ -88,18 +88,19 @@ export function FriendRequestNotifier() {
   if (!user || visible.length === 0) return null;
 
   return (
-    <div className="pointer-events-none fixed right-4 top-4 z-[60] flex flex-col gap-2">
+    // Below the sticky header so it never covers navigation or the page title.
+    <div role="region" aria-label="Friend requests" aria-live="polite" className="pointer-events-none fixed inset-x-3 top-[4.5rem] z-[60] flex flex-col gap-2 sm:inset-x-auto sm:right-4 sm:top-20">
       {visible.map((req) => (
         <div
           key={toastKey(req)}
-          className="pointer-events-auto flex w-72 flex-col gap-2 rounded-2xl border border-accent/30 bg-surface p-4 shadow-lg"
+          className="pointer-events-auto flex w-full flex-col gap-2 rounded-2xl border border-accent/30 bg-surface p-4 shadow-overlay sm:w-80"
         >
           <div className="flex items-start justify-between gap-2">
-            <div className="text-sm font-medium text-foreground">
+            <div className="break-anywhere min-w-0 text-sm font-medium text-foreground">
               🤝 {req.from.name}{" "}
               {req.proposedTime ? "suggested another time" : req.source === "find_a_friend" ? "found you on the radar" : "sent you a friend request"}
             </div>
-            <button onClick={() => dismiss(req)} className="text-muted hover:text-foreground" aria-label="Dismiss">
+            <button onClick={() => dismiss(req)} className="-mr-2 -mt-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface-2 hover:text-foreground" aria-label="Dismiss">
               ✕
             </button>
           </div>

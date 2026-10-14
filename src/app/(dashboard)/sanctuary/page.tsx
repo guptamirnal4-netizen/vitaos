@@ -157,7 +157,7 @@ export default function SanctuaryPage() {
           <span className="text-foreground">Take a sunlight walk.</span>
           <Link
             href="/connect/find"
-            className="shrink-0 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-black hover:opacity-90"
+            className="shrink-0 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-accent-contrast hover:opacity-90"
           >
             Find Someone to Walk With
           </Link>

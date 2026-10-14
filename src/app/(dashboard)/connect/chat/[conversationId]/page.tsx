@@ -141,7 +141,7 @@ export default function ChatPage() {
               <div
                 className={clsx(
                   "max-w-[75%] rounded-2xl px-3.5 py-2 text-sm",
-                  message.senderId === "me" ? "bg-accent text-black" : "bg-surface-2 text-foreground"
+                  message.senderId === "me" ? "bg-accent text-accent-contrast" : "bg-surface-2 text-foreground"
                 )}
               >
                 {message.text}
@@ -190,7 +190,7 @@ export default function ChatPage() {
         />
         <button
           type="submit"
-          className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+          className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
         >
           Send
         </button>

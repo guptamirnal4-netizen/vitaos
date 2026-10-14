@@ -97,7 +97,7 @@ export default function AiCoachPage() {
               <div
                 className={clsx(
                   "max-w-[80%] rounded-2xl px-3.5 py-2 text-sm",
-                  m.sender === "me" ? "bg-accent text-black" : "bg-surface-2 text-foreground"
+                  m.sender === "me" ? "bg-accent text-accent-contrast" : "bg-surface-2 text-foreground"
                 )}
               >
                 {m.text}
@@ -149,7 +149,7 @@ export default function AiCoachPage() {
           <button
             type="submit"
             disabled={sending}
-            className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90 disabled:opacity-60"
+            className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90 disabled:opacity-60"
           >
             Send
           </button>

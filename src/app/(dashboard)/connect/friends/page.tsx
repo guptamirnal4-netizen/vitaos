@@ -56,7 +56,7 @@ export default function ConnectFriendsPage() {
                   <button
                     onClick={() => sendFriendRequest(partner.id)}
                     disabled={isFriend || pending}
-                    className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-black hover:opacity-90 disabled:opacity-60"
+                    className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-contrast hover:opacity-90 disabled:opacity-60"
                   >
                     {isFriend ? "Friends ✓" : pending ? "Pending…" : "Add Friend"}
                   </button>
@@ -86,7 +86,7 @@ export default function ConnectFriendsPage() {
                   <div className="flex-1 text-sm font-medium text-foreground">{partner.name}</div>
                   <button
                     onClick={() => respondFriendRequest(request.id, "accepted")}
-                    className="rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-black hover:opacity-90"
+                    className="rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-accent-contrast hover:opacity-90"
                   >
                     Accept
                   </button>

@@ -173,7 +173,7 @@ function WinterArcContent() {
           {!joined && phase === "active" && (
             <button
               onClick={handleJoin}
-              className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-black hover:opacity-90"
+              className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-contrast hover:opacity-90"
             >
               {WINTER_ARC_COPY.joinCta}
             </button>
@@ -189,7 +189,7 @@ function WinterArcContent() {
             className={clsx(
               "rounded-full px-5 py-2.5 text-sm font-semibold",
               joined || phase !== "active"
-                ? "bg-accent text-black hover:opacity-90"
+                ? "bg-accent text-accent-contrast hover:opacity-90"
                 : "border border-border text-foreground hover:bg-surface-2"
             )}
           >

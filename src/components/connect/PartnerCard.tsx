@@ -69,7 +69,7 @@ export function PartnerCard({
         </Link>
         <button
           onClick={onConnect}
-          className="flex-1 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+          className="flex-1 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
         >
           Connect
         </button>

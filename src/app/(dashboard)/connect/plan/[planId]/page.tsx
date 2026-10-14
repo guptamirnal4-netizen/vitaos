@@ -86,7 +86,7 @@ export default function ActivityPlanPage() {
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => router.push(`/connect/chat/${plan.conversationId}`)}
-          className="flex-1 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+          className="flex-1 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
         >
           Open Chat
         </button>

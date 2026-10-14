@@ -3,7 +3,9 @@
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import type { Circle, CircleMarker, Map as LeafletMap } from "leaflet";
+import clsx from "clsx";
 import { coarsen } from "@/lib/network/geo";
+import { Button } from "@/components/ui/Button";
 
 export interface AreaPoint {
   lat: number;
@@ -14,6 +16,11 @@ export interface AreaPoint {
 type LeafletModule = typeof import("leaflet");
 
 const INDIA_CENTER: [number, number] = [20.59, 78.96];
+
+/** Leaflet draws on a canvas/SVG layer, so it needs the theme accent as a real colour value. */
+function accentColor(): string {
+  return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#1e5b4f";
+}
 
 /**
  * Pick a target area on an OpenStreetMap map (free tiles, no API key).
@@ -65,11 +72,16 @@ export function AreaPicker({
         onChangeRef.current({ ...point, label: "Pinned area" });
       });
       mapRef.current = map;
+      // Re-measure when the container changes size (rotation, sidebar, font zoom) — otherwise tiles render grey.
+      resizeObserver = new ResizeObserver(() => map.invalidateSize());
+      resizeObserver.observe(containerRef.current);
       setReady(true);
     }
+    let resizeObserver: ResizeObserver | null = null;
     init();
     return () => {
       cancelled = true;
+      resizeObserver?.disconnect();
       mapRef.current?.remove();
       mapRef.current = null;
     };
@@ -82,20 +94,23 @@ export function AreaPicker({
     circleRef.current?.remove();
     dotRef.current?.remove();
     if (!value) return;
+    const color = accentColor();
     const circle = L.circle([value.lat, value.lng], {
       radius: radiusKm * 1000,
-      color: "#34d399",
+      color,
       weight: 2,
       fillOpacity: 0.12,
     }).addTo(map);
     dotRef.current = L.circleMarker([value.lat, value.lng], {
       radius: 6,
-      color: "#34d399",
-      fillColor: "#34d399",
+      color,
+      fillColor: color,
       fillOpacity: 1,
     }).addTo(map);
     circleRef.current = circle;
-    map.fitBounds(circle.getBounds(), { padding: [20, 20] });
+    // No animation: Leaflet's zoom-animation end timer isn't cancelled by map.remove(), so continuing
+    // to the next step mid-animation threw "_leaflet_pos" errors. User pinch/zoom still animates.
+    map.fitBounds(circle.getBounds(), { padding: [20, 20], animate: false });
   }, [ready, value, radiusKm]);
 
   async function search(e: React.FormEvent) {
@@ -111,7 +126,7 @@ export function AreaPicker({
         setResults([]);
       } else {
         setResults(data.results);
-        if (data.results.length === 0) setMessage("No places found — try a nearby landmark or tap the map.");
+        setMessage(data.results.length === 0 ? "No places found — try a nearby landmark or tap the map." : null);
       }
     } catch {
       setMessage("Search is unavailable — tap the map instead.");
@@ -146,59 +161,68 @@ export function AreaPicker({
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="rounded-xl border border-border bg-surface-2 p-3 text-xs text-muted">
-        📍 We only use your location to centre the map. It&apos;s rounded to about 500 m, and your exact position is
-        never stored or shown to anyone.
-        <button
-          type="button"
-          onClick={locateMe}
-          disabled={locating}
-          className="mt-2 block rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-black hover:opacity-90 disabled:opacity-60"
-        >
+    <div className="flex min-w-0 flex-col gap-3">
+      <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface-2 p-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs text-muted">
+          <span aria-hidden="true">📍</span> We only use your location to centre the map. It&apos;s rounded to about 500 m, and your
+          exact position is never stored or shown to anyone.
+        </p>
+        <Button size="sm" className="shrink-0 self-start sm:self-auto" onClick={locateMe} loading={locating}>
           {locating ? "Finding you…" : "Use my location"}
-        </button>
+        </Button>
       </div>
 
-      <form onSubmit={search} className="flex gap-2">
+      <form onSubmit={search} role="search" className="flex gap-2">
+        <label htmlFor="area-search" className="sr-only">
+          Search for a place
+        </label>
         <input
+          id="area-search"
+          type="search"
+          enterKeyHint="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search a place, e.g. Lodhi Garden, Delhi"
-          className="flex-1 rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+          placeholder="Search a place, e.g. Lodhi Garden"
+          className="min-h-11 min-w-0 flex-1 rounded-xl border border-border-strong bg-surface px-3 text-sm text-foreground outline-none placeholder:text-muted focus:border-accent"
         />
-        <button
-          type="submit"
-          disabled={searching || query.trim().length < 3}
-          className="rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-2 disabled:opacity-50"
-        >
+        <Button type="submit" variant="secondary" className="shrink-0" disabled={query.trim().length < 3} loading={searching}>
           {searching ? "Searching…" : "Search"}
-        </button>
+        </Button>
       </form>
 
       {results.length > 0 && (
-        <div className="flex flex-col gap-1">
+        <ul className="flex flex-col overflow-hidden rounded-xl border border-border bg-surface" aria-label="Search results">
           {results.map((r) => (
-            <button
-              key={`${r.lat},${r.lng},${r.label}`}
-              type="button"
-              onClick={() => {
-                onChange(r);
-                setResults([]);
-              }}
-              className="truncate rounded-lg px-3 py-2 text-left text-xs text-foreground hover:bg-surface-2"
-            >
-              {r.label}
-            </button>
+            <li key={`${r.lat},${r.lng},${r.label}`} className="border-b border-border last:border-b-0">
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(r);
+                  setResults([]);
+                }}
+                className="break-anywhere flex min-h-11 w-full items-center px-3 py-2 text-left text-sm text-foreground hover:bg-surface-2"
+              >
+                {r.label}
+              </button>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
-      {message && <p className="text-xs text-muted">{message}</p>}
+      {message && (
+        <p role="status" className="text-xs text-muted">
+          {message}
+        </p>
+      )}
 
-      <div ref={containerRef} className="isolate z-0 h-72 w-full overflow-hidden rounded-2xl border border-border" />
-      <p className="text-xs text-muted">
-        {value ? `Selected: ${value.label} · ${radiusKm} km radius` : "Tap the map to pin the area you want to meet in."}
+      <div
+        ref={containerRef}
+        role="application"
+        aria-label="Map. Tap or click to pin the area you want to meet in. Drag to move, pinch or use the + and − buttons to zoom."
+        className="isolate z-0 h-64 w-full overflow-hidden rounded-2xl border border-border sm:h-80"
+      />
+      <p className={clsx("break-anywhere text-sm", value ? "font-medium text-foreground" : "text-muted")} aria-live="polite">
+        {value ? `✓ ${value.label} · ${radiusKm} km radius` : "Tap the map to pin the area you want to meet in."}
       </p>
     </div>
   );

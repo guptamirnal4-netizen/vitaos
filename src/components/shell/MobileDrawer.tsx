@@ -2,11 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 import { OVERVIEW_ITEM, ACTION_ITEMS, WELLNESS_ITEMS, PROFILE_ITEM } from "./navItems";
 import { TogetherfitLogo } from "@/components/brand/TogetherfitLogo";
 import { WinterArcNavBadge } from "@/components/winterArc/WinterArcNavBadge";
+import { useAuthStore } from "@/lib/auth/authStore";
 
 const DRAWER_ID = "mobile-nav-drawer";
 
@@ -33,7 +34,7 @@ function DrawerLink({
         active ? "bg-accent/15 text-accent-foreground" : "text-muted hover:bg-surface-2 hover:text-foreground"
       )}
     >
-      <span className="text-base">{icon}</span>
+      <span className="text-base" aria-hidden="true">{icon}</span>
       {label}
     </Link>
   );
@@ -49,6 +50,8 @@ export function MobileDrawer({
   triggerRef: React.RefObject<HTMLButtonElement | null>;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const logOut = useAuthStore((s) => s.logOut);
   const drawerRef = useRef<HTMLDivElement>(null);
 
   // Lock body scroll, move focus in, restore focus to the hamburger on close.
@@ -60,7 +63,24 @@ export function MobileDrawer({
     drawerRef.current?.focus();
 
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      // Keep Tab inside the drawer while it's open.
+      const drawer = drawerRef.current;
+      if (e.key !== "Tab" || !drawer) return;
+      const focusable = drawer.querySelectorAll<HTMLElement>("a[href], button");
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && (document.activeElement === first || document.activeElement === drawer)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
     document.addEventListener("keydown", onKeyDown);
 
@@ -83,10 +103,17 @@ export function MobileDrawer({
         aria-modal="true"
         aria-label="Navigation"
         tabIndex={-1}
-        className="absolute inset-y-0 left-0 flex w-72 flex-col border-r border-border bg-surface px-3 py-6 outline-none"
+        className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r border-border bg-surface px-3 pb-safe pt-5 shadow-overlay outline-none"
       >
-        <div className="mb-8 flex items-center gap-2 px-3">
-          <TogetherfitLogo layout="inline" size={40} />
+        <div className="mb-6 flex items-center justify-between gap-2 pl-3">
+          <TogetherfitLogo layout="inline" size={36} />
+          <button
+            onClick={onClose}
+            aria-label="Close menu"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-lg text-muted hover:bg-surface-2 hover:text-foreground"
+          >
+            ✕
+          </button>
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
@@ -130,7 +157,7 @@ export function MobileDrawer({
           ))}
         </nav>
 
-        <div className="border-t border-border pt-3">
+        <div className="flex flex-col gap-1 border-t border-border pt-3">
           <DrawerLink
             href={PROFILE_ITEM.href}
             icon={PROFILE_ITEM.icon}
@@ -138,6 +165,18 @@ export function MobileDrawer({
             active={pathname.startsWith(PROFILE_ITEM.href)}
             onNavigate={onClose}
           />
+          <DrawerLink href="/settings" icon="⚙️" label="Settings" active={pathname === "/settings"} onNavigate={onClose} />
+          <button
+            onClick={() => {
+              onClose();
+              logOut();
+              router.push("/login");
+            }}
+            className="flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-muted hover:bg-surface-2 hover:text-foreground"
+          >
+            <span className="text-base" aria-hidden="true">↩</span>
+            Log Out
+          </button>
         </div>
       </div>
     </div>

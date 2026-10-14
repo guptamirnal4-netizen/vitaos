@@ -65,7 +65,7 @@ export function RealFriendNetwork() {
       } catch {
         if (!cancelled) {
           setStatus("error");
-          setMessage("Couldn't reach the friend network — is DATABASE_URL configured?");
+          setMessage("Couldn't reach the friend network. Check your connection and try again.");
         }
       }
     })();
@@ -136,7 +136,7 @@ export function RealFriendNetwork() {
         />
         <button
           onClick={sendByCode}
-          className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+          className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
         >
           Send Request
         </button>

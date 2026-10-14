@@ -31,10 +31,10 @@ function NavLink({
         active ? "bg-accent/15 text-accent-foreground" : "text-muted hover:bg-surface-2 hover:text-foreground"
       )}
     >
-      <span className="text-base">{icon}</span>
+      <span className="text-base" aria-hidden="true">{icon}</span>
       {label}
       {!!badge && (
-        <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-black">
+        <span aria-label={`${badge} unread`} className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-accent-contrast">
           {badge}
         </span>
       )}
@@ -50,7 +50,7 @@ export function Sidebar() {
   const unreadCount = useUnreadConnectionsCount();
 
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-surface px-3 py-6 md:flex">
+    <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col overflow-y-auto border-r border-border bg-surface px-3 py-6 md:flex">
       <div className="mb-8 flex items-center gap-2 px-3">
         <TogetherfitLogo layout="inline" size={40} />
       </div>

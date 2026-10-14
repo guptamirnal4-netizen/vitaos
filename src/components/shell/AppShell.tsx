@@ -11,11 +11,12 @@ import { WinterArcPopup } from "@/components/winterArc/WinterArcPopup";
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <PostureMonitorProvider>
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="flex min-h-dvh bg-background text-foreground">
       <Sidebar />
-      <div className="flex min-h-screen flex-1 flex-col">
+      {/* min-w-0: without it this flex item can't shrink below its widest descendant, which widened every page on phones. */}
+      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
         <Header />
-        <main className="flex-1 overflow-y-auto px-4 pb-6 pt-6 md:px-8 md:pb-8">{children}</main>
+        <main className="pb-safe min-w-0 flex-1 px-4 pt-5 md:px-8 md:pt-8">{children}</main>
       </div>
       <FriendRequestNotifier />
       <CelebrationOverlay />

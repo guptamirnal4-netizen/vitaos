@@ -68,7 +68,7 @@ export function PatternEditor({
                 <button
                   disabled={disabled}
                   onClick={() => setPhase(phase, pattern[phase] - 1)}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-sm text-foreground hover:bg-surface disabled:opacity-50"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border-strong text-sm text-foreground hover:bg-surface disabled:opacity-50"
                   aria-label={`Decrease ${PHASE_LABELS[phase]}`}
                 >
                   −
@@ -86,7 +86,7 @@ export function PatternEditor({
                 <button
                   disabled={disabled}
                   onClick={() => setPhase(phase, pattern[phase] + 1)}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-sm text-foreground hover:bg-surface disabled:opacity-50"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border-strong text-sm text-foreground hover:bg-surface disabled:opacity-50"
                   aria-label={`Increase ${PHASE_LABELS[phase]}`}
                 >
                   +

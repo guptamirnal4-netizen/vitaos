@@ -83,7 +83,7 @@ function AdminView() {
         <button
           type="submit"
           disabled={!key.trim() || loading}
-          className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-black hover:opacity-90 disabled:opacity-60"
+          className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-contrast hover:opacity-90 disabled:opacity-60"
         >
           {loading ? "Loading…" : stats ? "Refresh" : "Load"}
         </button>

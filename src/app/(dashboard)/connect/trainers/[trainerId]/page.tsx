@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
 import { getTrainer } from "@/lib/move/trainers";
 import { useConnectStore } from "@/lib/store/connectStore";
 
@@ -85,7 +87,7 @@ export default function TrainerProfilePage() {
           {existingRequest.status !== "requested" && (
             <button
               onClick={() => router.push(`/connect/trainers/session/${existingRequest.id}`)}
-              className="mt-3 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+              className="mt-3 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
             >
               Message
             </button>
@@ -95,7 +97,7 @@ export default function TrainerProfilePage() {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setShowRequest(true)}
-            className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+            className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
           >
             Request Session
           </button>
@@ -103,55 +105,44 @@ export default function TrainerProfilePage() {
       )}
 
       {showRequest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-5">
-            <h3 className="mb-3 text-sm font-semibold text-foreground">Session Request</h3>
-            <div className="flex flex-col gap-3 text-sm">
-              <Row label="Trainer" value={trainer.name} />
-              <label className="flex items-center justify-between">
-                <span className="text-muted">Date</span>
-                <select value={date} onChange={(e) => setDate(e.target.value)} className="rounded-lg border border-border bg-surface-2 px-2 py-1 text-foreground">
-                  {["Today", "Tomorrow", "Saturday", "Sunday"].map((d) => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex items-center justify-between">
-                <span className="text-muted">Time</span>
-                <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="rounded-lg border border-border bg-surface-2 px-2 py-1 text-foreground" />
-              </label>
-              <label className="flex items-center justify-between">
-                <span className="text-muted">Format</span>
-                <select value={format} onChange={(e) => setFormat(e.target.value as "online" | "in-person")} className="rounded-lg border border-border bg-surface-2 px-2 py-1 text-foreground">
-                  <option value="online">Online</option>
-                  <option value="in-person">In-person</option>
-                </select>
-              </label>
-              <label className="flex items-center justify-between">
-                <span className="text-muted">Goal</span>
-                <input value={goal} onChange={(e) => setGoal(e.target.value)} className="w-40 rounded-lg border border-border bg-surface-2 px-2 py-1 text-foreground" />
-              </label>
-            </div>
-            <div className="mt-4 flex gap-2">
-              <button onClick={() => setShowRequest(false)} className="flex-1 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-2">
-                Cancel
-              </button>
-              <button onClick={sendRequest} className="flex-1 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90">
-                Send Request
-              </button>
-            </div>
+        <Dialog title="Session request" onClose={() => setShowRequest(false)} description={`With ${trainer.name}`}>
+          <div className="grid gap-3 text-sm">
+            <label className="flex flex-col gap-1.5 text-xs font-medium text-muted">
+              Date
+              <select value={date} onChange={(e) => setDate(e.target.value)} className="min-h-11 w-full rounded-xl border border-border-strong bg-surface px-3 text-sm text-foreground">
+                {["Today", "Tomorrow", "Saturday", "Sunday"].map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1.5 text-xs font-medium text-muted">
+              Time
+              <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="min-h-11 w-full rounded-xl border border-border-strong bg-surface px-3 text-sm text-foreground" />
+            </label>
+            <label className="flex flex-col gap-1.5 text-xs font-medium text-muted">
+              Format
+              <select value={format} onChange={(e) => setFormat(e.target.value as "online" | "in-person")} className="min-h-11 w-full rounded-xl border border-border-strong bg-surface px-3 text-sm text-foreground">
+                <option value="online">Online</option>
+                <option value="in-person">In-person</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1.5 text-xs font-medium text-muted">
+              Goal
+              <input value={goal} onChange={(e) => setGoal(e.target.value)} className="min-h-11 w-full rounded-xl border border-border-strong bg-surface px-3 text-sm text-foreground" />
+            </label>
           </div>
-        </div>
+          <div className="mt-5 flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={() => setShowRequest(false)}>
+              Cancel
+            </Button>
+            <Button className="flex-1" onClick={sendRequest}>
+              Send request
+            </Button>
+          </div>
+        </Dialog>
       )}
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-muted">{label}</span>
-      <span className="text-foreground">{value}</span>
     </div>
   );
 }
