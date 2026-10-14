@@ -61,7 +61,7 @@ export function CompletionScreen({
       <div className="mt-2 flex flex-wrap justify-center gap-2">
         <button
           onClick={onRepeat}
-          className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+          className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
         >
           Repeat
         </button>

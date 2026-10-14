@@ -9,8 +9,8 @@ import { TogetherfitIcon } from "@/components/brand/TogetherfitIcon";
 
 const NODES: { key: ModuleKey; label: string; x: number; y: number; icon: string }[] = [
   { key: "sanctuary", label: "Sanctuary", x: 50, y: 6, icon: "🌿" },
-  { key: "posture", label: "Posture & Gaze", x: 10, y: 35, icon: "👁" },
-  { key: "move", label: "Move & Coach", x: 90, y: 35, icon: "🏋️" },
+  { key: "posture", label: "Posture & Gaze", x: 17, y: 35, icon: "👁" },
+  { key: "move", label: "Move & Coach", x: 83, y: 35, icon: "🏋️" },
   { key: "urgesurfer", label: "UrgeSurfer", x: 20, y: 88, icon: "🫁" },
   { key: "connect", label: "Connect", x: 80, y: 88, icon: "🤝" },
 ];
@@ -80,7 +80,7 @@ export function EcosystemMap() {
             onMouseEnter={() => setActive(n.key)}
             onMouseLeave={() => setActive(null)}
             className={clsx(
-              "absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 rounded-xl border px-3 py-2 text-center text-xs font-medium transition-colors",
+              "absolute flex -translate-x-1/2 -translate-y-1/2 w-[6.5rem] flex-col items-center gap-1 text-balance rounded-xl border px-2 py-2 text-center text-xs font-medium transition-colors",
               active === n.key
                 ? "border-accent/50 bg-accent/10 text-accent-foreground"
                 : "border-border bg-surface text-muted"

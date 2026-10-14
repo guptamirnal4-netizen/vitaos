@@ -143,7 +143,7 @@ function WinterArcDialog({ email, onClose }: { email: string; onClose: () => voi
               <button
                 data-autofocus
                 onClick={handleGoTo}
-                className="flex-1 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-black hover:opacity-90"
+                className="flex-1 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-accent-contrast hover:opacity-90"
               >
                 {WINTER_ARC_COPY.goToCta}
               </button>
@@ -171,7 +171,7 @@ function WinterArcDialog({ email, onClose }: { email: string; onClose: () => voi
               <button
                 data-autofocus
                 onClick={handleJoin}
-                className="flex-1 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-black hover:opacity-90"
+                className="flex-1 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-accent-contrast hover:opacity-90"
               >
                 {WINTER_ARC_COPY.joinCta}
               </button>

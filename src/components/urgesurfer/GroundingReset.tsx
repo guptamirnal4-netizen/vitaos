@@ -72,7 +72,7 @@ export function GroundingReset({ onComplete }: { onComplete: () => void }) {
       <button
         onClick={next}
         disabled={!allChecked}
-        className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-black hover:opacity-90 disabled:opacity-40"
+        className="rounded-full bg-accent px-6 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90 disabled:opacity-40"
       >
         {stepIndex + 1 < STEPS.length ? "Next" : "Finish"}
       </button>

@@ -153,7 +153,7 @@ export default function GoalsPage() {
           <div className="mt-4 flex gap-2">
             <button
               onClick={handleCreate}
-              className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+              className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
             >
               Create Goal
             </button>

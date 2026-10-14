@@ -100,7 +100,7 @@ export default function ConnectMessagesPage() {
                 <div className="truncate text-xs text-muted">{c.lastMessage ?? "Say hi 👋"}</div>
               </div>
               {c.unreadCount > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-black">
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-accent-contrast">
                   {c.unreadCount}
                 </span>
               )}

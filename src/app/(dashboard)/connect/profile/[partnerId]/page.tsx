@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
 import { ConnectRequestModal } from "@/components/connect/ConnectRequestModal";
 import { SafetyReminder } from "@/components/connect/SafetyReminder";
 import { useConnectStore } from "@/lib/store/connectStore";
@@ -98,14 +100,14 @@ export default function PartnerProfilePage() {
         {isConnected && conversation ? (
           <button
             onClick={() => router.push(`/connect/chat/${conversation.id}`)}
-            className="flex-1 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+            className="flex-1 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
           >
             Open Chat
           </button>
         ) : (
           <button
             onClick={() => setShowRequest(true)}
-            className="flex-1 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
+            className="flex-1 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90"
           >
             Connect
           </button>
@@ -140,33 +142,28 @@ export default function PartnerProfilePage() {
       )}
 
       {showConfirmBlock && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-5">
-            <h3 className="text-sm font-semibold text-foreground">Block {partner.name}?</h3>
-            <p className="mt-2 text-xs text-muted">
-              They won&apos;t be able to contact you, and this also reports the profile for review.
-              This removes any existing connection.
-            </p>
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => setShowConfirmBlock(false)}
-                className="flex-1 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-2"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  blockUser(partner.id);
-                  setShowConfirmBlock(false);
-                  router.push("/connect");
-                }}
-                className="flex-1 rounded-full bg-danger px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-              >
-                Block & Report
-              </button>
-            </div>
+        <Dialog
+          title={`Block ${partner.name}?`}
+          onClose={() => setShowConfirmBlock(false)}
+          description="They won't be able to contact you, and this also reports the profile for review. This removes any existing connection."
+        >
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={() => setShowConfirmBlock(false)} data-autofocus>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              className="flex-1"
+              onClick={() => {
+                blockUser(partner.id);
+                setShowConfirmBlock(false);
+                router.push("/connect");
+              }}
+            >
+              Block &amp; report
+            </Button>
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );

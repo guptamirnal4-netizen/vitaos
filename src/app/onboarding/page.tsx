@@ -104,7 +104,7 @@ export default function OnboardingPage() {
             </div>
             <button
               onClick={() => setStep(2)}
-              className="rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-black hover:opacity-90"
+              className="rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-accent-contrast hover:opacity-90"
             >
               Continue
             </button>
@@ -139,7 +139,7 @@ export default function OnboardingPage() {
               <button
                 onClick={requestCamera}
                 disabled={cameraRequesting || cameraResult === "granted"}
-                className="flex-1 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-black hover:opacity-90 disabled:opacity-60"
+                className="flex-1 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-accent-contrast hover:opacity-90 disabled:opacity-60"
               >
                 {cameraRequesting
                   ? "Requesting…"
@@ -225,7 +225,7 @@ export default function OnboardingPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setStep(4)}
-                className="flex-1 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-black hover:opacity-90"
+                className="flex-1 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-accent-contrast hover:opacity-90"
               >
                 Continue
               </button>
@@ -248,7 +248,7 @@ export default function OnboardingPage() {
             </p>
             <button
               onClick={finish}
-              className="rounded-xl bg-accent px-6 py-2.5 text-sm font-semibold text-black hover:opacity-90"
+              className="rounded-xl bg-accent px-6 py-2.5 text-sm font-semibold text-accent-contrast hover:opacity-90"
             >
               Enter togetherfit
             </button>

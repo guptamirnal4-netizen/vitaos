@@ -37,7 +37,7 @@ export function ManualCounter({
       <div className="flex items-center gap-2">
         <button
           onClick={() => onChange(value - step)}
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-sm text-foreground hover:bg-surface-2"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border-strong text-base text-foreground hover:bg-surface-2"
           aria-label={`Decrease ${label}`}
         >
           −
@@ -46,20 +46,20 @@ export function ManualCounter({
           type="number"
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-14 rounded-lg border border-border bg-surface-2 px-2 py-1 text-center text-sm text-foreground"
+          className="h-9 w-full min-w-0 max-w-16 flex-1 rounded-lg border border-border bg-surface-2 px-1 text-center text-sm tabular-nums text-foreground"
           aria-label={`${label} (${unit})`}
         />
         <button
           onClick={() => onChange(value + step)}
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-sm text-foreground hover:bg-surface-2"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border-strong text-base text-foreground hover:bg-surface-2"
           aria-label={`Increase ${label}`}
         >
           +
         </button>
-        <span className="text-xs text-muted">
-          / {target} {unit}
-        </span>
       </div>
+      <span className="text-xs text-muted">
+        {value} of {target} {unit}
+      </span>
 
       <ProgressBar value={pct} tone={met ? "good" : "default"} />
     </div>

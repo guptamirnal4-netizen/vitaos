@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
           />
           <button
             type="submit"
-            className="mt-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-black hover:opacity-90"
+            className="mt-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-accent-contrast hover:opacity-90"
           >
             Send Reset Link
           </button>

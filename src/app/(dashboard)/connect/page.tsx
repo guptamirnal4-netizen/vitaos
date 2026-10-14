@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Badge } from "@/components/ui/Badge";
+import { buttonClass } from "@/components/ui/Button";
 import { AddFriendModal } from "@/components/connect/AddFriendModal";
 import { useConnectStore } from "@/lib/store/connectStore";
 import { MOCK_PARTNERS } from "@/lib/connect/mockPartners";
@@ -57,27 +58,22 @@ export default function ConnectDashboardPage() {
     .slice(0, 5);
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6">
-      <div className="flex items-start justify-between gap-3">
-        <PageHeader icon="🤝" title="Activity" subtitle="Find an activity, and people who fit your wellness routine." />
-        <div className="mt-1 flex shrink-0 items-center gap-3">
-          <Link
-            href="/connect/find"
-            className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-black hover:opacity-90"
-          >
-            🔎 Find a Friend
-          </Link>
-          <button
-            onClick={() => setAddFriendOpen(true)}
-            className="rounded-full border border-border px-4 py-1.5 text-xs font-semibold text-foreground hover:bg-surface-2"
-          >
-            ➕ Add Friend
-          </button>
-          <Link href="/connect/my-profile" className="text-xs font-medium text-accent-foreground hover:underline">
-            My Profile →
-          </Link>
-        </div>
-      </div>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+      <PageHeader
+        icon="🤝"
+        title="Connect"
+        subtitle="Find an activity, and people who fit your wellness routine."
+        actions={
+          <>
+            <Link href="/connect/find" className={buttonClass("primary", "sm")}>
+              🔎 Find a Friend
+            </Link>
+            <button onClick={() => setAddFriendOpen(true)} className={buttonClass("secondary", "sm")}>
+              ➕ Add Friend
+            </button>
+          </>
+        }
+      />
 
       {addFriendOpen && <AddFriendModal onClose={() => setAddFriendOpen(false)} />}
 
@@ -105,9 +101,9 @@ export default function ConnectDashboardPage() {
               <Link
                 key={plan.id}
                 href={`/connect/plan/${plan.id}`}
-                className="flex items-center justify-between rounded-2xl border border-border bg-surface p-4 hover:bg-surface-2"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface p-4 hover:bg-surface-2"
               >
-                <div>
+                <div className="min-w-0">
                   <div className="text-sm font-medium text-foreground">
                     {ACTIVITY_META[plan.activity].icon} {ACTIVITY_META[plan.activity].label}
                   </div>
@@ -123,8 +119,11 @@ export default function ConnectDashboardPage() {
       )}
 
       <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted">Suggested Partners</h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted">Suggested Partners</h2>
+            <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] font-medium text-muted">Demo profiles</span>
+          </div>
           <Link href="/connect/discover" className="text-xs font-medium text-accent-foreground hover:underline">
             Find more →
           </Link>
@@ -139,8 +138,8 @@ export default function ConnectDashboardPage() {
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-2 text-xl">
                 {partner.avatar}
               </span>
-              <div className="flex-1">
-                <div className="text-sm font-medium text-foreground">{partner.name}</div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium text-foreground">{partner.name}</div>
                 <div className="text-xs text-muted">{partner.approxDistanceAway}</div>
               </div>
               <span className="text-xs font-semibold text-accent-foreground">{score}%</span>
@@ -174,7 +173,7 @@ export default function ConnectDashboardPage() {
                 href={`/connect/messages/${f.connectionId}`}
                 className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-foreground hover:bg-surface-2"
               >
-                {f.name} <span aria-hidden="true">💬</span>
+                <span className="max-w-[12rem] truncate">{f.name}</span> <span aria-hidden="true">💬</span>
               </Link>
             ))}
           </div>

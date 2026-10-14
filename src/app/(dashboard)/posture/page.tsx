@@ -86,7 +86,7 @@ export default function PosturePage() {
           )}
           {monitoring && (
             <div className="absolute left-2 top-2 flex items-center gap-1.5 rounded-full bg-danger/90 px-2.5 py-1 text-xs font-medium text-white">
-              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+              <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden="true" />
               Camera Active
             </div>
           )}
@@ -97,7 +97,7 @@ export default function PosturePage() {
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-border bg-surface p-3">
               <div className="text-xs text-muted">Camera Status</div>
-              <div className="mt-1 flex items-center gap-1.5 text-sm font-medium text-foreground">
+              <div aria-live="polite" className="mt-1 flex items-center gap-1.5 text-sm font-medium text-foreground">
                 <span className={clsx("h-1.5 w-1.5 rounded-full", monitoring ? "bg-success" : "bg-muted")} />
                 {monitoring ? "Monitoring" : "Idle"}
               </div>
@@ -138,7 +138,7 @@ export default function PosturePage() {
               <button
                 onClick={handleStart}
                 disabled={starting}
-                className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90 disabled:opacity-60"
+                className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90 disabled:opacity-60"
               >
                 {starting ? "Starting…" : "Start Monitoring"}
               </button>

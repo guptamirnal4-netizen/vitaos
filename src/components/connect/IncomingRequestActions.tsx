@@ -67,7 +67,7 @@ export function IncomingRequestActions({
     }
   }
 
-  const primary = "flex-1 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-black hover:opacity-90 disabled:opacity-60";
+  const primary = "flex-1 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-accent-contrast hover:opacity-90 disabled:opacity-60";
   const secondary = "flex-1 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-surface-2 disabled:opacity-60";
 
   return (

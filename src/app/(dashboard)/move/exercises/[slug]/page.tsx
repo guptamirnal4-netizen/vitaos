@@ -42,7 +42,7 @@ export default function ExerciseDetailPage() {
             href={exercise.youtubeUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-full bg-danger px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+            className="flex items-center gap-2 rounded-full bg-danger px-5 py-2.5 text-sm font-semibold text-danger-contrast hover:opacity-90"
           >
             <span aria-hidden="true">▶</span> Watch form tutorial on YouTube
           </a>
@@ -103,7 +103,7 @@ export default function ExerciseDetailPage() {
           setAdded(true);
         }}
         disabled={alreadyInDraft || added}
-        className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90 disabled:opacity-60"
+        className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast hover:opacity-90 disabled:opacity-60"
       >
         {alreadyInDraft || added ? "Added to Workout ✓" : "Add to Workout"}
       </button>

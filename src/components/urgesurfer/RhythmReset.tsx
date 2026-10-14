@@ -157,7 +157,7 @@ export function RhythmReset({ onComplete }: { onComplete: (stats: { duration: nu
               Haptics
             </label>
           </div>
-          <button onClick={start} className="rounded-full bg-accent px-8 py-3 text-sm font-semibold text-black hover:opacity-90">
+          <button onClick={start} className="rounded-full bg-accent px-8 py-3 text-sm font-semibold text-accent-contrast hover:opacity-90">
             Start Rhythm
           </button>
         </>

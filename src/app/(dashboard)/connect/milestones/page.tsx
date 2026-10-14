@@ -41,7 +41,7 @@ export default function MilestonesPage() {
         const data = await fetchOverview(user!.email);
         if (!cancelled) setOverview(data);
       } catch {
-        if (!cancelled) setError("Couldn't reach the server — is DATABASE_URL configured?");
+        if (!cancelled) setError("Couldn't reach the server. Check your connection and try again.");
       }
     }
     load();
@@ -52,7 +52,7 @@ export default function MilestonesPage() {
 
   async function logSolo(sport: string) {
     if (!user) return;
-    const result = await logActivityAndCelebrate(user, { sport });
+    const result = await logActivityAndCelebrate(user, { sport, recordWellnessEvent: true });
     setNotice(result.ok ? (result.newMilestones.length > 0 ? null : "Activity logged ✅") : (result.error ?? "Couldn't log it."));
     const data = await fetchOverview(user.email);
     if (data) setOverview(data);
@@ -123,7 +123,7 @@ export default function MilestonesPage() {
               {card && (
                 <button
                   onClick={() => celebrate([card])}
-                  className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-black hover:opacity-90"
+                  className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-contrast hover:opacity-90"
                 >
                   🎉 Share
                 </button>

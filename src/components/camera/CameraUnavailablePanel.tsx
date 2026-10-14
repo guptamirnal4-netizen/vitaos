@@ -25,7 +25,7 @@ export function CameraUnavailablePanel({
       <div className="mt-1 flex gap-2">
         <button
           onClick={onRetry}
-          className="rounded-full bg-accent px-4 py-2 text-xs font-semibold text-black hover:opacity-90"
+          className="rounded-full bg-accent px-4 py-2 text-xs font-semibold text-accent-contrast hover:opacity-90"
         >
           Try Again
         </button>

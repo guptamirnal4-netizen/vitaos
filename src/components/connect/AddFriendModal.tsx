@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCurrentUser } from "@/lib/auth/authStore";
+import { Dialog } from "@/components/ui/Dialog";
+import { Button, buttonClass } from "@/components/ui/Button";
 
 /**
  * Quick "Add Friend" entry point on the main Connect screen, using the same
@@ -34,58 +36,63 @@ export function AddFriendModal({ onClose }: { onClose: () => void }) {
       }
     } catch {
       setStatus("error");
-      setMessage("Couldn't reach the friend network — is DATABASE_URL configured?");
+      setMessage("Couldn't reach the friend network. Check your connection and try again.");
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-6">
-        <div className="mb-1 text-lg font-semibold text-foreground">Add Friend</div>
-        <p className="mb-4 text-xs text-muted">
-          Enter a friend&apos;s unique code. Works across real devices — find your own code on the Friends tab.
-        </p>
-
-        {status === "sent" ? (
-          <div className="flex flex-col items-center gap-3 py-4 text-center">
-            <span className="text-3xl">✅</span>
-            <div className="text-sm font-medium text-foreground">Request sent!</div>
-            <Link
-              href="/connect/friends"
-              className="text-xs font-medium text-accent-foreground hover:underline"
-              onClick={onClose}
-            >
-              View Friends →
-            </Link>
+    <Dialog
+      title="Add Friend"
+      onClose={onClose}
+      description={<>Enter a friend&apos;s unique code. Works across real devices — find your own code on the Friends tab.</>}
+    >
+      {status === "sent" ? (
+        <div role="status" className="flex flex-col items-center gap-3 py-4 text-center">
+          <span className="text-3xl" aria-hidden="true">
+            ✅
+          </span>
+          <div className="text-sm font-medium text-foreground">Request sent. They&apos;ll see it next time they open togetherfit.</div>
+          <Link href="/connect/friends" className={buttonClass("secondary", "sm")} onClick={onClose}>
+            View Friends →
+          </Link>
+        </div>
+      ) : (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            send();
+          }}
+        >
+          <label htmlFor="add-friend-code" className="mb-1.5 block text-xs font-medium text-muted">
+            Friend code
+          </label>
+          <input
+            id="add-friend-code"
+            value={codeInput}
+            onChange={(e) => setCodeInput(e.target.value)}
+            placeholder="e.g. SB-7K2QAF"
+            autoCapitalize="characters"
+            autoComplete="off"
+            spellCheck={false}
+            aria-invalid={status === "error"}
+            aria-describedby={status === "error" ? "add-friend-error" : undefined}
+            className="min-h-11 w-full rounded-xl border border-border-strong bg-surface px-4 text-sm text-foreground outline-none focus:border-accent"
+          />
+          {status === "error" && (
+            <p id="add-friend-error" role="alert" className="mt-2 text-xs text-danger">
+              {message}
+            </p>
+          )}
+          <div className="mt-4 flex gap-2">
+            <Button type="submit" className="flex-1" disabled={!codeInput.trim()} loading={status === "sending"}>
+              {status === "sending" ? "Sending…" : "Send request"}
+            </Button>
+            <Button variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
           </div>
-        ) : (
-          <>
-            <input
-              value={codeInput}
-              onChange={(e) => setCodeInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && send()}
-              placeholder="e.g. SB-7K2QAF"
-              className="w-full rounded-xl border border-border bg-surface-2 px-4 py-2.5 text-sm text-foreground outline-none focus:border-accent"
-            />
-            {status === "error" && <p className="mt-2 text-xs text-danger">{message}</p>}
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={send}
-                disabled={!codeInput.trim() || status === "sending"}
-                className="flex-1 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-black hover:opacity-90 disabled:opacity-60"
-              >
-                {status === "sending" ? "Sending…" : "Send Request"}
-              </button>
-              <button
-                onClick={onClose}
-                className="flex-1 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-2"
-              >
-                Cancel
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+        </form>
+      )}
+    </Dialog>
   );
 }

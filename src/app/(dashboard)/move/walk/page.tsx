@@ -104,7 +104,7 @@ export default function MicroStrollWalkPage() {
           <div className="text-sm text-foreground">Nice walk! Want company next time?</div>
           <Link
             href="/connect/discover?activity=walking"
-            className="shrink-0 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-black hover:opacity-90"
+            className="shrink-0 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-accent-contrast hover:opacity-90"
           >
             Find a Walking Partner
           </Link>
