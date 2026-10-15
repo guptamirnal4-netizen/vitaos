@@ -10,10 +10,10 @@ import { NUDGE_MESSAGES, NudgeKind } from "./postureNudges";
  * - as a system notification only when the user opted in, granted permission,
  *   and the app window isn't focused (e.g. working in another app on desktop).
  */
-export function deliverNudge(kind: NudgeKind) {
+export function deliverNudge(kind: NudgeKind, copy?: { title: string; body: string }) {
   const store = useCameraStore.getState();
-  const nudge = store.pushNudge(kind);
-  const message = NUDGE_MESSAGES[nudge.kind];
+  const nudge = store.pushNudge(kind, copy);
+  const message = nudge.title && nudge.body ? { title: nudge.title, body: nudge.body } : NUDGE_MESSAGES[nudge.kind];
 
   if (typeof navigator !== "undefined" && "vibrate" in navigator && window.matchMedia?.("(pointer: coarse)").matches) {
     navigator.vibrate?.(120);

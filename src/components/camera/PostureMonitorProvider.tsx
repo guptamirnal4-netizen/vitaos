@@ -5,7 +5,13 @@ import { usePostureCamera } from "@/lib/camera/usePostureCamera";
 
 interface PostureMonitor {
   start: () => Promise<void>;
+  /** Turns the camera off and stops all processing. */
   stop: () => void;
+  /** Stops processing frames; the camera stays on so resuming is instant. */
+  pause: () => void;
+  resume: () => void;
+  /** Captures the user's upright baseline from the next few good frames. */
+  calibrate: () => void;
   /** The live camera stream, for showing a preview; null when not monitoring. */
   stream: MediaStream | null;
 }
