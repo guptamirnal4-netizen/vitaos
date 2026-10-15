@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getPool } from "@/lib/db";
 import { clientIp } from "./rateLimit";
+import { RESTRICTION_COLUMNS, toRestriction, type Restriction, type RestrictionScope } from "@/lib/safety/restrictions";
 
 export const SESSION_COOKIE = "tf_session";
 const SESSION_DAYS = 30;
@@ -14,6 +15,34 @@ export interface SessionUser {
   name: string;
   code: string;
   onboardingComplete: boolean;
+  isAdmin: boolean;
+  /** Active safety restriction, if any (see src/lib/safety/restrictions.ts). */
+  restriction: Restriction | null;
+}
+
+interface UserColumns {
+  id: string;
+  email: string;
+  name: string;
+  code: string;
+  onboarding_completed_at: string | null;
+  role: string;
+  restriction_active: boolean | null;
+  restriction_scope: RestrictionScope | null;
+  restriction_until: Date | null;
+  restriction_reason: string | null;
+}
+
+function toSessionUser(row: UserColumns): SessionUser {
+  return {
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    code: row.code,
+    onboardingComplete: !!row.onboarding_completed_at,
+    isAdmin: row.role === "admin",
+    restriction: toRestriction(row),
+  };
 }
 
 function tokenId(token: string): string {
@@ -49,12 +78,13 @@ export async function endAllSessions(userId: string): Promise<void> {
 }
 
 export async function getSessionUserById(userId: string): Promise<SessionUser | null> {
-  const result = await getPool().query<{ id: string; email: string; name: string; code: string; onboarding_completed_at: string | null }>(
-    "select id, email, name, code, onboarding_completed_at from app_users where id = $1",
+  const result = await getPool().query<UserColumns>(
+    `select u.id, u.email, u.name, u.code, u.onboarding_completed_at, u.role, ${RESTRICTION_COLUMNS("u")}
+     from app_users u where u.id = $1`,
     [userId]
   );
   const row = result.rows[0];
-  return row ? { id: row.id, email: row.email, name: row.name, code: row.code, onboardingComplete: !!row.onboarding_completed_at } : null;
+  return row ? toSessionUser(row) : null;
 }
 
 /** The signed-in user for this request, or null. */
@@ -63,15 +93,8 @@ export async function getSessionUser(req: NextRequest): Promise<SessionUser | nu
   if (!token) return null;
   const pool = getPool();
   const id = tokenId(token);
-  const result = await pool.query<{
-    id: string;
-    email: string;
-    name: string;
-    code: string;
-    onboarding_completed_at: string | null;
-    stale: boolean;
-  }>(
-    `select u.id, u.email, u.name, u.code, u.onboarding_completed_at,
+  const result = await pool.query<UserColumns & { stale: boolean }>(
+    `select u.id, u.email, u.name, u.code, u.onboarding_completed_at, u.role, ${RESTRICTION_COLUMNS("u")},
             s.last_seen_at < now() - make_interval(mins => $2) as stale
      from auth_sessions s join app_users u on u.id = s.user_id
      where s.id = $1 and s.expires_at > now()`,
@@ -86,7 +109,7 @@ export async function getSessionUser(req: NextRequest): Promise<SessionUser | nu
       [id, SESSION_DAYS]
     );
   }
-  return { id: row.id, email: row.email, name: row.name, code: row.code, onboardingComplete: !!row.onboarding_completed_at };
+  return toSessionUser(row);
 }
 
 /**
@@ -96,4 +119,17 @@ export async function getSessionUser(req: NextRequest): Promise<SessionUser | nu
 export async function requireUser(req: NextRequest): Promise<SessionUser | NextResponse> {
   const user = await getSessionUser(req);
   return user ?? NextResponse.json({ ok: false, error: "Please log in again." }, { status: 401 });
+}
+
+/** For admin-only routes: the signed-in admin, or a 401/403 response to return as-is. */
+export async function requireAdmin(req: NextRequest): Promise<SessionUser | NextResponse> {
+  const user = await requireUser(req);
+  if (user instanceof NextResponse) return user;
+  return user.isAdmin ? user : NextResponse.json({ ok: false, error: "Admins only" }, { status: 403 });
+}
+
+/** Signs the user out everywhere except this request's session (after a password change). */
+export async function endOtherSessions(req: NextRequest, userId: string): Promise<void> {
+  const token = req.cookies.get(SESSION_COOKIE)?.value;
+  await getPool().query("delete from auth_sessions where user_id = $1 and id <> $2", [userId, token ? tokenId(token) : ""]);
 }
