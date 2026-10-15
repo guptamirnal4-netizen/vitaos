@@ -20,7 +20,8 @@ export function PostureNudgeToast() {
   }, [nudge, dismiss]);
 
   if (!nudge) return null;
-  const message = NUDGE_MESSAGES[nudge.kind];
+  // Context-specific copy from the posture engine, or the shared default.
+  const message = nudge.title && nudge.body ? { title: nudge.title, body: nudge.body } : NUDGE_MESSAGES[nudge.kind];
 
   return (
     <div className="pointer-events-none fixed inset-x-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[60] flex justify-center md:inset-x-auto md:bottom-4 md:right-4 md:justify-end">

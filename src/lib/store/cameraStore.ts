@@ -4,6 +4,15 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { registerUserScopedStore, userScopedStorage } from "./userScopedStorage";
 import { NUDGE_CONFIG, NudgeKind, NudgeState } from "@/lib/camera/postureNudges";
+import type {
+  ActivityEstimate,
+  DeviceContextEstimate,
+  DeviceSelection,
+  PostureCalibration,
+  PostureEvaluation,
+  PostureIssueCode,
+} from "@/lib/posture/types";
+import type { SessionError, SessionState } from "@/lib/posture/session";
 
 export type CameraPermissionState =
   | "unknown"
@@ -19,7 +28,19 @@ export interface ActiveNudge {
   id: number;
   kind: NudgeKind | "both";
   at: number;
+  /** Context-specific copy from the posture engine; falls back to NUDGE_MESSAGES. */
+  title?: string;
+  body?: string;
 }
+
+/** Counts for the current monitoring session (derived only — no images, no landmarks). */
+export interface PostureSessionStats {
+  warnings: number;
+  recoveries: number;
+  issues: Partial<Record<PostureIssueCode, number>>;
+}
+
+const EMPTY_STATS: PostureSessionStats = { warnings: 0, recoveries: 0, issues: {} };
 
 interface CameraState {
   permission: CameraPermissionState;
@@ -38,6 +59,19 @@ interface CameraState {
   /** Opt-in: also show a system notification when the app window isn't focused. */
   systemNotifications: boolean;
 
+  // Activity-aware posture (lib/posture). Live values change at most once per inference tick.
+  sessionState: SessionState;
+  sessionError: SessionError | null;
+  activity: ActivityEstimate | null;
+  device: DeviceContextEstimate | null;
+  evaluation: PostureEvaluation | null;
+  /** Persisted: Auto / Laptop / Phone / Other. */
+  deviceSelection: DeviceSelection;
+  /** Persisted per user: the upright baseline that adapts rules to their camera placement. */
+  calibration: PostureCalibration | null;
+  calibrating: boolean;
+  sessionStats: PostureSessionStats;
+
 
   alertsEnabled: boolean;
   gazeAlertsEnabled: boolean;
@@ -49,7 +83,14 @@ interface CameraState {
   setMonitoring: (on: boolean) => void;
   updateMetrics: (m: Partial<Pick<CameraState, "eyeLevelAngle" | "headTilt" | "headTurn" | "postureStatus">>) => void;
   setNudgeStates: (posture: NudgeState, gaze: NudgeState) => void;
-  pushNudge: (kind: NudgeKind) => ActiveNudge;
+  pushNudge: (kind: NudgeKind, copy?: { title: string; body: string }) => ActiveNudge;
+  setSession: (state: SessionState, error: SessionError | null) => void;
+  /** Applies a tick's results, skipping the update when nothing visible changed. */
+  setLive: (live: { activity: ActivityEstimate | null; device: DeviceContextEstimate | null; evaluation: PostureEvaluation | null }) => void;
+  setDeviceSelection: (selection: DeviceSelection) => void;
+  setCalibration: (calibration: PostureCalibration | null) => void;
+  setCalibrating: (on: boolean) => void;
+  recordSessionEvent: (type: "warning" | "recovered", issue?: PostureIssueCode) => void;
   dismissNudge: () => void;
   setSystemNotifications: (on: boolean) => void;
   registerSlouchEvent: () => void;
@@ -79,6 +120,16 @@ export const useCameraStore = create<CameraState>()(
       activeNudge: null,
       systemNotifications: false,
 
+      sessionState: "idle",
+      sessionError: null,
+      activity: null,
+      device: null,
+      evaluation: null,
+      deviceSelection: "AUTO",
+      calibration: null,
+      calibrating: false,
+      sessionStats: EMPTY_STATS,
+
 
       alertsEnabled: true,
       gazeAlertsEnabled: true,
@@ -88,10 +139,13 @@ export const useCameraStore = create<CameraState>()(
 
       setPermission: (permission) => set({ permission }),
       setMonitoring: (monitoring) =>
-        set({
+        set((state) => ({
           monitoring,
-          monitoringStartedAt: monitoring ? Date.now() : null,
-        }),
+          // Pausing keeps the session's start time; only a fresh start resets it.
+          monitoringStartedAt: monitoring ? (state.monitoringStartedAt ?? Date.now()) : null,
+          sessionStats: monitoring ? state.sessionStats : EMPTY_STATS,
+          ...(monitoring ? {} : { activity: null, device: null, evaluation: null, calibrating: false }),
+        })),
       updateMetrics: (m) => set(m),
       setNudgeStates: (postureNudgeState, gazeNudgeState) => {
         const s = get();
@@ -99,15 +153,31 @@ export const useCameraStore = create<CameraState>()(
           set({ postureNudgeState, gazeNudgeState });
         }
       },
-      pushNudge: (kind) => {
+      pushNudge: (kind, copy) => {
         const now = Date.now();
         const current = get().activeNudge;
         const merge = current !== null && current.kind !== kind && now - current.at < NUDGE_CONFIG.NUDGE_VISIBLE_MS;
-        const next: ActiveNudge = { id: (current?.id ?? 0) + 1, kind: merge ? "both" : kind, at: now };
+        // Merged posture+gaze nudges use the shared "Quick reset" copy instead of one context's message.
+        const next: ActiveNudge = { id: (current?.id ?? 0) + 1, kind: merge ? "both" : kind, at: now, ...(merge ? {} : copy) };
         set({ activeNudge: next });
         return next;
       },
       dismissNudge: () => set({ activeNudge: null }),
+      setSession: (sessionState, sessionError) => set({ sessionState, sessionError }),
+      setLive: (live) => {
+        const s = get();
+        if (liveKey(s) !== liveKey(live)) set(live);
+      },
+      setDeviceSelection: (deviceSelection) => set({ deviceSelection }),
+      setCalibration: (calibration) => set({ calibration, calibrating: false }),
+      setCalibrating: (calibrating) => set({ calibrating }),
+      recordSessionEvent: (type, issue) =>
+        set((state) => {
+          const stats = state.sessionStats;
+          if (type === "recovered") return { sessionStats: { ...stats, recoveries: stats.recoveries + 1 } };
+          const issues = issue ? { ...stats.issues, [issue]: (stats.issues[issue] ?? 0) + 1 } : stats.issues;
+          return { sessionStats: { ...stats, warnings: stats.warnings + 1, issues } };
+        }),
       setSystemNotifications: (systemNotifications) => set({ systemNotifications }),
       registerSlouchEvent: () =>
         set((state) => ({ slouchEventsToday: state.slouchEventsToday + 1 })),
@@ -138,9 +208,29 @@ export const useCameraStore = create<CameraState>()(
         alertSensitivity: state.alertSensitivity,
         alertCooldownMinutes: state.alertCooldownMinutes,
         systemNotifications: state.systemNotifications,
+        deviceSelection: state.deviceSelection,
+        calibration: state.calibration,
       }),
     }
   )
 );
 
 registerUserScopedStore(useCameraStore);
+
+/** What the UI shows from a tick; rounding keeps tiny metric jitter from re-rendering. */
+function liveKey(l: { activity: ActivityEstimate | null; device: DeviceContextEstimate | null; evaluation: PostureEvaluation | null }): string {
+  const e = l.evaluation;
+  return JSON.stringify([
+    l.activity?.state,
+    l.activity?.estimated,
+    Math.round((l.activity?.confidence ?? 0) * 10),
+    l.device?.context,
+    l.device?.source,
+    e?.status,
+    e?.ruleSet,
+    e?.recommendation,
+    e?.notEvaluatedReason,
+    e?.issues.map((i) => i.code + i.severity),
+    e?.metrics.map((m) => `${m.key}:${m.value}:${m.ok}`),
+  ]);
+}
