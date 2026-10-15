@@ -189,6 +189,14 @@ export const ALERT_CONFIG = {
   LOW_CONFIDENCE_GRACE_MS: 2_000,
   /** Suggest a movement break after this long evaluated in one position without moving much. */
   STATIC_BREAK_MS: 40 * 60_000,
+  /**
+   * "Alert as soon as my posture isn't optimal" (Settings): a short debounce
+   * instead of the per-context persistence, so a momentary flicker at a
+   * threshold doesn't fire, but real slouching does within seconds.
+   */
+  INSTANT_PERSIST_MS: 3_000,
+  /** In instant mode every new episode notifies, but never more often than this. */
+  INSTANT_MIN_GAP_MS: 10_000,
   /** Same multipliers as the existing posture nudges (Settings → Alert sensitivity). */
   SENSITIVITY_MULTIPLIER: { low: 1.5, medium: 1, high: 0.6 } as const,
 };

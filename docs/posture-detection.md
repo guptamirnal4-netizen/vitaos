@@ -90,6 +90,15 @@ nudges never count against the posture score.
 
 ## Alerts
 
+**Instant alerts (default, Settings → "Alert as soon as my posture isn't
+optimal").** Any issue lasting ~3 s triggers a nudge, and an on-screen banner
+with the live correction stays on every dashboard page until posture is back
+within limits (dismissing it hides it until the next episode). Every new
+episode notifies, at most once every 10 s, so a borderline posture can't spam.
+Uncorrected issues are re-notified at the "Remind again every" interval, which
+is clamped to 1–15 minutes.
+
+**Sustained alerts (instant off):**
 Issue persists for the rule's duration → nudge. Still uncorrected → reminder
 every "Remind again every" interval (Settings). Back within limits for 2 s →
 recovered. The same issue reappearing starts a new episode and still respects

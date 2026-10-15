@@ -77,6 +77,10 @@ interface CameraState {
   gazeAlertsEnabled: boolean;
   alertSensitivity: "low" | "medium" | "high";
   alertCooldownMinutes: number;
+  /** Alert within seconds whenever posture isn't optimal, and keep an on-screen banner until it's corrected. */
+  instantAlerts: boolean;
+  /** Bumped on every new posture warning, so a dismissed banner comes back for the next episode. */
+  postureEpisode: number;
   lastAlertAt: number | null;
 
   setPermission: (p: CameraPermissionState) => void;
@@ -98,6 +102,7 @@ interface CameraState {
   setGazeAlertsEnabled: (on: boolean) => void;
   setAlertSensitivity: (s: CameraState["alertSensitivity"]) => void;
   setAlertCooldownMinutes: (m: number) => void;
+  setInstantAlerts: (on: boolean) => void;
   markAlertFired: () => void;
   canFireAlert: () => boolean;
 }
@@ -135,6 +140,8 @@ export const useCameraStore = create<CameraState>()(
       gazeAlertsEnabled: true,
       alertSensitivity: "medium",
       alertCooldownMinutes: 1, // "Remind again every" — also spaces separate episodes
+      instantAlerts: true,
+      postureEpisode: 0,
       lastAlertAt: null,
 
       setPermission: (permission) => set({ permission }),
@@ -176,7 +183,7 @@ export const useCameraStore = create<CameraState>()(
           const stats = state.sessionStats;
           if (type === "recovered") return { sessionStats: { ...stats, recoveries: stats.recoveries + 1 } };
           const issues = issue ? { ...stats.issues, [issue]: (stats.issues[issue] ?? 0) + 1 } : stats.issues;
-          return { sessionStats: { ...stats, warnings: stats.warnings + 1, issues } };
+          return { sessionStats: { ...stats, warnings: stats.warnings + 1, issues }, postureEpisode: state.postureEpisode + 1 };
         }),
       setSystemNotifications: (systemNotifications) => set({ systemNotifications }),
       registerSlouchEvent: () =>
@@ -184,7 +191,9 @@ export const useCameraStore = create<CameraState>()(
       setAlertsEnabled: (alertsEnabled) => set({ alertsEnabled }),
       setGazeAlertsEnabled: (gazeAlertsEnabled) => set({ gazeAlertsEnabled }),
       setAlertSensitivity: (alertSensitivity) => set({ alertSensitivity }),
-      setAlertCooldownMinutes: (alertCooldownMinutes) => set({ alertCooldownMinutes }),
+      // The input only suggests 1–15; clamp so an empty or 0 value can't make reminders fire on every frame.
+      setAlertCooldownMinutes: (m) => set({ alertCooldownMinutes: clampMinutes(m) }),
+      setInstantAlerts: (instantAlerts) => set({ instantAlerts }),
       markAlertFired: () => set({ lastAlertAt: Date.now() }),
       canFireAlert: () => {
         const { lastAlertAt, alertCooldownMinutes } = get();
@@ -195,11 +204,13 @@ export const useCameraStore = create<CameraState>()(
     {
       name: "vitaos-camera-store",
       storage: userScopedStorage,
-      version: 1,
-      // v0 used a 3-minute one-off cooldown; reminders now repeat, so move the old default to 1 minute.
+      version: 2,
       migrate: (persisted, version) => {
         const state = persisted as Partial<CameraState>;
+        // v0 used a 3-minute one-off cooldown; reminders now repeat, so move the old default to 1 minute.
         if (version < 1 && state.alertCooldownMinutes === 3) state.alertCooldownMinutes = 1;
+        // v1 could save 0 (an emptied input), which meant a reminder on every frame.
+        if (version < 2) state.alertCooldownMinutes = clampMinutes(state.alertCooldownMinutes ?? 1);
         return state as CameraState;
       },
       partialize: (state) => ({
@@ -207,6 +218,7 @@ export const useCameraStore = create<CameraState>()(
         gazeAlertsEnabled: state.gazeAlertsEnabled,
         alertSensitivity: state.alertSensitivity,
         alertCooldownMinutes: state.alertCooldownMinutes,
+        instantAlerts: state.instantAlerts,
         systemNotifications: state.systemNotifications,
         deviceSelection: state.deviceSelection,
         calibration: state.calibration,
@@ -233,4 +245,8 @@ function liveKey(l: { activity: ActivityEstimate | null; device: DeviceContextEs
     e?.issues.map((i) => i.code + i.severity),
     e?.metrics.map((m) => `${m.key}:${m.value}:${m.ok}`),
   ]);
+}
+
+function clampMinutes(m: number): number {
+  return Number.isFinite(m) ? Math.min(15, Math.max(1, Math.round(m))) : 1;
 }

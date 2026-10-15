@@ -165,6 +165,7 @@ export function usePostureCamera(videoRef: React.RefObject<HTMLVideoElement | nu
         enabled: camera.alertsEnabled,
         sensitivity: camera.alertSensitivity,
         cooldownMs: camera.alertCooldownMinutes * 60_000,
+        instant: camera.instantAlerts,
       };
       if (camera.calibrating && !pipeline.calibrating) pipeline.startCalibration();
 
@@ -193,8 +194,15 @@ export function usePostureCamera(videoRef: React.RefObject<HTMLVideoElement | nu
         faceSignals && atScreen ? { postureStatus: "optimal", headTilt: 0, headTurn: faceSignals.yawDeg } : null,
         { sensitivity: settings.sensitivity, cooldownMs: settings.cooldownMs, postureEnabled: false, gazeEnabled: camera.gazeAlertsEnabled }
       );
+      // Debounced: "warning" only once the issue has persisted (and until corrected), so the on-screen banner doesn't flicker.
       const postureState =
-        out.evaluation.status === "ADJUST" ? "warning" : out.evaluation.status === "GOOD" ? "optimal" : "no-detection";
+        out.alertPhase === "warning"
+          ? "warning"
+          : out.alertPhase === "recovering"
+            ? "recovering"
+            : out.evaluation.status === "NOT_EVALUATED"
+              ? "no-detection"
+              : "optimal";
       camera.setNudgeStates(postureState, gazeRef.current.states.gaze);
       for (const g of gazeEvents) if (g.notify && (g.type === "warning" || g.type === "reminder")) deliverNudge("gaze");
 

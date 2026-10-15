@@ -8,6 +8,12 @@ export interface AlertSettings {
   sensitivity: Sensitivity;
   /** While still not corrected, remind again after this long. Also the minimum gap between separate episodes' nudges. */
   cooldownMs: number;
+  /**
+   * Alert whenever posture isn't optimal: a ~3 s debounce instead of the
+   * context's persistence time, and every new episode notifies (spaced by
+   * INSTANT_MIN_GAP_MS rather than the reminder interval).
+   */
+  instant?: boolean;
 }
 
 export type AlertPhase = "idle" | "building" | "warning" | "recovering" | "suppressed";
@@ -102,7 +108,9 @@ export class AlertValidator {
     if (this.phase === "suppressed") this.phase = "idle";
 
     const rule = this.rules[this.ruleSet!];
-    const persistMs = rule.persistMs * (this.config.SENSITIVITY_MULTIPLIER[settings.sensitivity] ?? 1);
+    const persistMs = settings.instant
+      ? this.config.INSTANT_PERSIST_MS
+      : rule.persistMs * (this.config.SENSITIVITY_MULTIPLIER[settings.sensitivity] ?? 1);
     const top = evaluation.issues[0] ?? null;
 
     if (top) {
@@ -121,7 +129,8 @@ export class AlertValidator {
         if (sustainedMs >= persistMs) {
           this.phase = "warning";
           this.activeIssue = top;
-          const notify = settings.enabled && this.cooledDown(now, settings.cooldownMs);
+          const gap = settings.instant ? this.config.INSTANT_MIN_GAP_MS : settings.cooldownMs;
+          const notify = settings.enabled && this.cooledDown(now, gap);
           if (notify) this.lastNotifiedAt = now;
           events.push({ type: "warning", notify, issue: top, ruleSet: this.ruleSet, sustainedMs });
         }

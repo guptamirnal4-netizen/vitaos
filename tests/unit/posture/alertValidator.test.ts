@@ -131,6 +131,50 @@ describe("AlertValidator", () => {
     expect(at("medium")).toBeLessThan(at("low"));
   });
 
+  describe("instant mode (alert whenever posture isn't optimal)", () => {
+    const instant: AlertSettings = { ...settings, instant: true };
+
+    it("alerts within a few seconds instead of the context's persistence time", () => {
+      const v = new AlertValidator();
+      const { events } = feed(v, 0, ALERT_CONFIG.INSTANT_PERSIST_MS + 800, evaluation(true), instant);
+      expect(events.find((e) => e.type === "warning")?.notify).toBe(true);
+      expect(ALERT_CONFIG.INSTANT_PERSIST_MS).toBeLessThan(PERSIST);
+    });
+
+    it("still ignores a momentary flicker", () => {
+      const v = new AlertValidator();
+      const { events } = feed(v, 0, 1_200, evaluation(true), instant);
+      expect(events).toEqual([]);
+    });
+
+    it("notifies for every new episode, not only once per reminder interval", () => {
+      const v = new AlertValidator();
+      let t = 0;
+      let notified = 0;
+      for (let i = 0; i < 3; i++) {
+        const bad = feed(v, t, ALERT_CONFIG.INSTANT_PERSIST_MS + 800, evaluation(true), instant);
+        notified += bad.events.filter((e) => e.type === "warning" && e.notify).length;
+        // Corrected, then good for long enough to clear the minimum gap.
+        t = feed(v, bad.t, ALERT_CONFIG.INSTANT_MIN_GAP_MS, evaluation(false), instant).t;
+      }
+      expect(notified).toBe(3);
+    });
+
+    it("spaces notifications by the minimum gap when posture keeps flipping", () => {
+      const v = new AlertValidator();
+      let t = feed(v, 0, ALERT_CONFIG.INSTANT_PERSIST_MS + 400, evaluation(true), instant).t;
+      t = feed(v, t, ALERT_CONFIG.RECOVERY_MS + 400, evaluation(false), instant).t;
+      const again = feed(v, t, ALERT_CONFIG.INSTANT_PERSIST_MS + 400, evaluation(true), instant);
+      expect(again.events.find((e) => e.type === "warning")?.notify).toBe(false);
+    });
+
+    it("keeps the warning active until posture is corrected", () => {
+      const v = new AlertValidator();
+      feed(v, 0, 30_000, evaluation(true), instant);
+      expect(v.phase).toBe("warning");
+    });
+  });
+
   it("suggests a movement break after a long time without changing position", () => {
     const v = new AlertValidator();
     const { events } = feed(v, 0, ALERT_CONFIG.STATIC_BREAK_MS + 2_000, evaluation(false));

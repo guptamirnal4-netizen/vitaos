@@ -1,5 +1,5 @@
 import { ActivitySmoother } from "./activityClassifier";
-import { AlertEvent, AlertSettings, AlertValidator } from "./alertValidator";
+import { AlertEvent, AlertPhase, AlertSettings, AlertValidator } from "./alertValidator";
 import { ACTIVITY_CONFIG, SESSION_CONFIG } from "./config";
 import { DeviceContextTracker, DeviceSignals } from "./deviceContext";
 import { extractFeatures } from "./features";
@@ -29,6 +29,8 @@ export interface FrameOutput {
   events: AlertEvent[];
   /** Set on the frame calibration finishes. */
   calibrated: PostureCalibration | null;
+  /** Debounced alert state: "warning" only once an issue has persisted, and until it's corrected. */
+  alertPhase: AlertPhase;
 }
 
 /**
@@ -71,7 +73,15 @@ export class PosturePipeline {
     const device = this.device.update(features, signals);
     const evaluation = evaluatePosture({ activity, device: device.context, features, calibration: this.calibration });
     const events = this.alerts.update(input.now, evaluation, settings, this.moved(features));
-    return { features, activity, device, evaluation, events, calibrated: this.collectCalibration(features, activity) };
+    return {
+      features,
+      activity,
+      device,
+      evaluation,
+      events,
+      calibrated: this.collectCalibration(features, activity),
+      alertPhase: this.alerts.phase,
+    };
   }
 
   private moved(f: BodyFeatures): boolean {

@@ -60,6 +60,7 @@ export function PostureGazeStatus() {
   const alertsEnabled = useCameraStore((s) => s.alertsEnabled);
   const gazeAlertsEnabled = useCameraStore((s) => s.gazeAlertsEnabled);
   const cooldown = useCameraStore((s) => s.alertCooldownMinutes);
+  const instant = useCameraStore((s) => s.instantAlerts);
   const systemNotifications = useCameraStore((s) => s.systemNotifications);
   const setSystemNotifications = useCameraStore((s) => s.setSystemNotifications);
   const permission = usePermission();
@@ -84,7 +85,9 @@ export function PostureGazeStatus() {
         <StatusCard label="Gaze" state={gazeState} monitoring={monitoring} />
       </div>
       <div className="text-xs text-muted">
-        {nudgesOn ? `${which} nudges on · reminds again every ${cooldown} min until you correct it.` : "Nudges are off."}{" "}
+        {nudgesOn
+          ? `${which} nudges on · ${alertsEnabled && instant ? "posture alerts within seconds, " : ""}reminds again every ${cooldown} min until you correct it.`
+          : "Nudges are off."}{" "}
         <Link href="/settings" className="font-medium text-accent-foreground hover:underline">
           Change in Settings
         </Link>

@@ -66,6 +66,8 @@ export default function SettingsPage() {
   const setGazeAlertsEnabled = useCameraStore((s) => s.setGazeAlertsEnabled);
   const setAlertSensitivity = useCameraStore((s) => s.setAlertSensitivity);
   const setAlertCooldownMinutes = useCameraStore((s) => s.setAlertCooldownMinutes);
+  const instantAlerts = useCameraStore((s) => s.instantAlerts);
+  const setInstantAlerts = useCameraStore((s) => s.setInstantAlerts);
 
   const wellnessReminders = usePreferencesStore((s) => s.wellnessReminders);
   const setWellnessReminders = usePreferencesStore((s) => s.setWellnessReminders);
@@ -132,6 +134,16 @@ export default function SettingsPage() {
 
         <div className="flex flex-col gap-3 border-t border-border pt-3">
           <Toggle on={alertsEnabled} onChange={setAlertsEnabled} label="Posture alerts" />
+          {alertsEnabled && (
+            <div className="flex flex-col gap-1">
+              <Toggle on={instantAlerts} onChange={setInstantAlerts} label="Alert as soon as my posture isn't optimal" />
+              <p className="text-xs text-muted">
+                {instantAlerts
+                  ? "Alerts within a few seconds and keeps a banner on screen until you've adjusted."
+                  : "Waits until a posture issue has lasted a while (Alert sensitivity) before alerting."}
+              </p>
+            </div>
+          )}
           <Toggle on={gazeAlertsEnabled} onChange={setGazeAlertsEnabled} label="Gaze / eye-level alerts" />
 
           <label className="flex items-center justify-between text-sm text-foreground">
