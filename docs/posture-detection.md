@@ -39,7 +39,7 @@ with fakes. All thresholds live in `src/lib/posture/config.ts`.
 | SITTING | Thighs near horizontal (hips + knees visible), **or** upper body large in frame with hips out of view — shown as "(estimated)", since a standing desk looks the same |
 | STANDING | Thighs near vertical and torso upright |
 | LYING_DOWN | Torso (or head→shoulder) axis within 30° of horizontal |
-| POSSIBLE_SLEEP | Lying down ≥ 3 min **and** nearly still **and** eyes closed ≥ 60 s. Stillness alone never counts. Shown as "Lying down or resting", never as sleep |
+| POSSIBLE_SLEEP | **Dozing in a chair:** sitting with eyes closed ≥ 30 s in a row (a blink resets it). **Resting in bed:** lying down ≥ 3 min **and** nearly still **and** eyes closed ≥ 60 s. Stillness alone never counts; no visible face means no eye evidence. Shown as "Dozing off?" / "Lying down or resting", never as confirmed sleep |
 | UNKNOWN | Some body visible but not enough to tell |
 | INSUFFICIENT_VISIBILITY | Head and shoulders not visible |
 
@@ -67,8 +67,13 @@ using or what you're holding, and the UI says so.
 | Advice | "…bring the screen closer to eye level" | "…raise your phone closer to eye level" |
 
 Standing uses its own torso/shoulder rules. Lying down only checks a sharply
-bent neck (> 40° relative to the torso) — no desk rules — and never counts
-against the posture score.
+bent neck (> 40° relative to the torso) — no desk rules.
+
+**Resting / dozing** is never a fault in itself, but a neck left hanging is:
+dozing in a chair with the head dropped forward (> 35°) or tipped to one side
+(> 25°) for 20 s gets a nudge ("You seem to be dozing with your head tipped to
+one side…"). Resting in bed only checks the neck bend. Lying and resting
+nudges never count against the posture score.
 
 ### Threshold rationale (heuristic, not clinical)
 
@@ -131,6 +136,7 @@ so check accuracy by hand after changes:
 3. Pick **Phone**, look down at a phone held low for ~25 s → phone nudge; brief glances → nothing.
 4. Stand back so your legs are visible → "Standing" (not estimated).
 5. Lie on a sofa in view → "Lying down", no desk warnings.
+5b. Sit back, close your eyes and let your head tip sideways → after ~30 s "Dozing off?", then a dozing nudge ~20 s later.
 6. Walk out of frame → "Can't see you clearly", no warning.
 7. Pause → badge "Paused — camera still on"; Stop → the browser's camera light turns off.
 

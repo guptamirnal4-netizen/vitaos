@@ -14,7 +14,7 @@ import type {
 /**
  * Which rules apply. Body position decides first; device context then picks
  * between laptop, phone and general rules. Lying down never gets desk
- * ergonomics, and possible sleep / unknown get no rules at all.
+ * ergonomics; resting/dozing only gets neck checks; unknown gets no rules.
  */
 export function selectRuleSet(activity: ActivityEstimate["state"], device: DeviceContext): RuleSetKey | null {
   switch (activity) {
@@ -24,6 +24,8 @@ export function selectRuleSet(activity: ActivityEstimate["state"], device: Devic
       return device === "PHONE" ? "PHONE" : "STANDING";
     case "LYING_DOWN":
       return "LYING";
+    case "POSSIBLE_SLEEP":
+      return "RESTING";
     default:
       return null;
   }
@@ -35,6 +37,7 @@ const MESSAGES: Record<PostureIssueCode, Partial<Record<RuleSetKey, string>> & {
     LAPTOP_SEATED: "Your head is leaning forward. Try bringing the screen closer to eye level.",
     PHONE: "Try raising your phone closer to eye level to reduce sustained neck bending.",
     STANDING: "Your head is tipped down. Lift your gaze and let your shoulders drop.",
+    RESTING: "You seem to be dozing with your head dropped forward, which strains your neck. Rest your head back with support, or take a proper break.",
     default: "Your head is tipped down. Lift your gaze a little.",
   },
   FORWARD_HEAD: {
@@ -43,6 +46,7 @@ const MESSAGES: Record<PostureIssueCode, Partial<Record<RuleSetKey, string>> & {
     default: "You're leaning forward. Sit back and let your head rest over your shoulders.",
   },
   HEAD_TILT: {
+    RESTING: "You seem to be dozing with your head tipped to one side. Support your neck, or take a proper rest break.",
     default: "Your head is tilted to one side. Bring it back to centre.",
   },
   SHOULDER_ASYMMETRY: {
@@ -83,11 +87,7 @@ export function evaluatePosture(input: EvaluationInput, rules: Record<RuleSetKey
 
   if (!ruleSet) {
     const reason =
-      activity.state === "POSSIBLE_SLEEP"
-        ? "Resting — posture isn't judged while you rest."
-        : activity.state === "INSUFFICIENT_VISIBILITY"
-          ? "Move so your head and shoulders are in view."
-          : "Not sure what position you're in yet.";
+      activity.state === "INSUFFICIENT_VISIBILITY" ? "Move so your head and shoulders are in view." : "Not sure what position you're in yet.";
     return { ...base, status: "NOT_EVALUATED", notEvaluatedReason: reason };
   }
   if (confidence < ALERT_CONFIG.MIN_CONFIDENCE) {
@@ -97,7 +97,10 @@ export function evaluatePosture(input: EvaluationInput, rules: Record<RuleSetKey
   const rule = rules[ruleSet];
   const issues: PostureIssue[] = [];
   const metrics: PostureMetric[] = [];
-  const check = (key: RuleSet["checks"][number]) => rule.checks.includes(key);
+  // While lying down the whole body is horizontal, so head angles relative to the camera mean nothing:
+  // resting in bed only checks how the neck bends relative to the torso.
+  const checks = ruleSet === "RESTING" && activity.restingFrom !== "SITTING" ? (["neckBend"] as const) : rule.checks;
+  const check = (key: RuleSet["checks"][number]) => (checks as ReadonlyArray<string>).includes(key);
 
   if (check("headDown")) {
     // Relative to the user's calibrated upright pitch, which absorbs camera placement (a laptop webcam sits below the eyes).

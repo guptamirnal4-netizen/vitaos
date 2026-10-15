@@ -67,7 +67,7 @@ export function PostureLivePanel() {
               <>
                 <Icon name={act.icon} size={18} className="text-accent-foreground" />
                 <span>
-                  {act.label}
+                  {activity?.state === "POSSIBLE_SLEEP" && activity.restingFrom === "SITTING" ? "Dozing off? Eyes closed for a while" : act.label}
                   {activity?.estimated && activity.state !== "POSSIBLE_SLEEP" ? " (estimated)" : ""}
                 </span>
               </>

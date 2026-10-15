@@ -100,15 +100,16 @@ function handleAlertEvent(event: AlertEvent) {
   const { logEvent } = useWellnessStore.getState();
   if (event.type === "warning") {
     camera.recordSessionEvent("warning", event.issue?.code);
-    // Lying down isn't "slouching"; its gentle neck note never counts against the posture score.
-    if (event.ruleSet !== "LYING") {
+    // Lying down or dozing isn't "slouching": those neck nudges never count against the posture score.
+    const counts = event.ruleSet !== "LYING" && event.ruleSet !== "RESTING";
+    if (counts) {
       camera.registerSlouchEvent();
       logEvent("slouch_detected", { duration: Math.round(event.sustainedMs / 1000) });
     }
   }
   if (event.type === "recovered") {
     camera.recordSessionEvent("recovered");
-    if (event.ruleSet !== "LYING") logEvent("posture_alignment_restored");
+    if (event.ruleSet !== "LYING" && event.ruleSet !== "RESTING") logEvent("posture_alignment_restored");
   }
   if (!event.notify) return;
   if ((event.type === "warning" || event.type === "reminder") && event.issue) {

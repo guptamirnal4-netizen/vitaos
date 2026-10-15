@@ -18,8 +18,8 @@ describe("selectRuleSet", () => {
     expect(selectRuleSet("LYING_DOWN", "LAPTOP")).toBe("LYING");
   });
 
-  it("applies no rules while resting or when unsure", () => {
-    expect(selectRuleSet("POSSIBLE_SLEEP", "PHONE")).toBeNull();
+  it("uses neck-only resting rules while dozing, and no rules when unsure", () => {
+    expect(selectRuleSet("POSSIBLE_SLEEP", "PHONE")).toBe("RESTING");
     expect(selectRuleSet("UNKNOWN", "LAPTOP")).toBeNull();
     expect(selectRuleSet("INSUFFICIENT_VISIBILITY", "LAPTOP")).toBeNull();
   });
@@ -125,11 +125,41 @@ describe("evaluatePosture — standing and lying down", () => {
     expect(codes(e)).toEqual(["NECK_BENT"]);
   });
 
-  it("never warns while resting (possible sleep)", () => {
-    const e = evaluatePosture({ activity: act("POSSIBLE_SLEEP", 0.6), device: "PHONE", features: extractFeatures(lyingDown(0.3), face(60), 1) });
-    expect(e.status).toBe("NOT_EVALUATED");
-    expect(e.issues).toEqual([]);
-    expect(e.notEvaluatedReason).toMatch(/rest/i);
+});
+
+describe("evaluatePosture — resting / dozing", () => {
+  const resting = (from: "SITTING" | "LYING_DOWN"): ActivityEstimate => ({ ...act("POSSIBLE_SLEEP", 0.6), restingFrom: from });
+
+  it("resting with a neutral, supported head is not a fault", () => {
+    const e = evaluatePosture({ activity: resting("SITTING"), device: "LAPTOP", features: extractFeatures(webcamUpright(), face(8), 1) });
+    expect(e.ruleSet).toBe("RESTING");
+    expect(e.status).toBe("GOOD");
+  });
+
+  it("dozing in a chair with the head tipped to one side is flagged with dozing advice", () => {
+    // The real-world case: reclined, eyes closed, head tilted ~34° against a cushion.
+    const e = evaluatePosture({ activity: resting("SITTING"), device: "LAPTOP", features: extractFeatures(webcamUpright(), face(8, { rollDeg: 34 }), 1) });
+    expect(e.status).toBe("ADJUST");
+    expect(codes(e)).toEqual(["HEAD_TILT"]);
+    expect(e.recommendation).toMatch(/dozing/i);
+  });
+
+  it("dozing with the head dropped forward is flagged", () => {
+    const e = evaluatePosture({ activity: resting("SITTING"), device: "UNKNOWN", features: extractFeatures(webcamUpright(), face(45), 1) });
+    expect(codes(e)).toContain("HEAD_DOWN");
+  });
+
+  it("is more tolerant while dozing than while working (no nudge for a mild tilt)", () => {
+    const features = extractFeatures(webcamUpright(), face(8, { rollDeg: 20 }), 1);
+    expect(codes(evaluatePosture({ activity: act("SITTING"), device: "LAPTOP", features }))).toContain("HEAD_TILT");
+    expect(codes(evaluatePosture({ activity: resting("SITTING"), device: "LAPTOP", features }))).toEqual([]);
+  });
+
+  it("resting lying down only checks the neck bend, not head angles to the camera", () => {
+    const neutral = evaluatePosture({ activity: resting("LYING_DOWN"), device: "PHONE", features: extractFeatures(lyingDown(), face(70, { rollDeg: 85 }), 1) });
+    expect(neutral.status).toBe("GOOD");
+    const bent = evaluatePosture({ activity: resting("LYING_DOWN"), device: "PHONE", features: extractFeatures(lyingDown(0.15), face(5), 1) });
+    expect(codes(bent)).toEqual(["NECK_BENT"]);
   });
 });
 

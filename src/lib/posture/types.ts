@@ -85,6 +85,8 @@ export interface ActivityEstimate {
   /** True when inferred from typical framing rather than seeing the hips/knees (e.g. "seated" at a webcam). */
   estimated: boolean;
   reason: string;
+  /** For POSSIBLE_SLEEP: the position the person is resting in (dozing in a chair vs. lying down). */
+  restingFrom?: "SITTING" | "LYING_DOWN";
 }
 
 export interface DeviceContextEstimate {
@@ -94,7 +96,7 @@ export interface DeviceContextEstimate {
 }
 
 /** The rule set chosen for the current activity + device. */
-export type RuleSetKey = "LAPTOP_SEATED" | "PHONE" | "GENERAL_SEATED" | "STANDING" | "LYING";
+export type RuleSetKey = "LAPTOP_SEATED" | "PHONE" | "GENERAL_SEATED" | "STANDING" | "LYING" | "RESTING";
 
 export type PostureIssueCode =
   | "HEAD_DOWN"

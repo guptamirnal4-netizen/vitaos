@@ -50,6 +50,8 @@ export const ACTIVITY_CONFIG = {
    */
   SLEEP_MIN_LYING_MS: 3 * 60_000,
   SLEEP_EYES_CLOSED_MS: 60_000,
+  /** Sitting with eyes closed this long (blinks reset it) reads as dozing off in the chair. */
+  SEATED_DOZE_EYES_MS: 30_000,
   SLEEP_EYES_CLOSED_SCORE: 0.6,
   /** Mean anchor movement per frame (in shoulder widths) below which the body counts as still. */
   STILL_MOVEMENT_SW: 0.02,
@@ -155,6 +157,26 @@ export const RULE_SETS: Record<RuleSetKey, RuleSet> = {
     neckBendDeg: 40,
     checks: ["neckBend"],
     persistMs: 60_000,
+  },
+  /**
+   * Dozing or resting. Resting itself is never a fault; only a neck left
+   * hanging (head dropped forward or tipped hard to one side while dozing in a
+   * chair, or sharply bent while lying) is flagged. Lying down only uses the
+   * neck-bend check, because head angles relative to the camera mean nothing
+   * when the whole body is horizontal.
+   */
+  RESTING: {
+    label: "Resting",
+    headDownDeg: 35,
+    headDownSevereDeg: 50,
+    neckHeightMinShare: 0,
+    neckHeightMinAbsolute: 0,
+    headTiltDeg: 25,
+    shoulderAsymmetry: 1,
+    torsoLeanDeg: null,
+    neckBendDeg: 40,
+    checks: ["headDown", "headTilt", "neckBend"],
+    persistMs: 20_000,
   },
 };
 

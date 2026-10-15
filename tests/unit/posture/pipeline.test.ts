@@ -47,6 +47,17 @@ describe("PosturePipeline (classify first, evaluate second)", () => {
     expect(out.at(-1)!.evaluation.status).toBe("GOOD");
   });
 
+  it("dozing in a chair with the head tipped sideways ends in one contextual nudge", () => {
+    const p = new PosturePipeline();
+    // Eyes closed + 34° head tilt, sustained (dozing detection ~30 s, then the 20 s resting rule).
+    const out = run(p, webcamUpright(), face(8, { rollDeg: 34, eyesClosed: 0.9 }), 70_000);
+    const warnings = out.flatMap((o) => o.events).filter((e) => e.type === "warning");
+    expect(out.at(-1)!.activity.state).toBe("POSSIBLE_SLEEP");
+    expect(warnings.length).toBeGreaterThanOrEqual(1);
+    expect(warnings.at(-1)!.ruleSet).toBe("RESTING");
+    expect(warnings.at(-1)!.issue?.message).toMatch(/dozing/i);
+  });
+
   it("calibration captures a baseline from good seated frames", () => {
     const p = new PosturePipeline();
     p.startCalibration();

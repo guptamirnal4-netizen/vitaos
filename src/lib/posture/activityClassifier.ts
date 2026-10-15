@@ -56,8 +56,10 @@ interface Frame {
  *   the leading candidate for MIN_DWELL_MS before it replaces the current one
  *   (hysteresis — no flicker between sitting and unknown at a threshold);
  * - losing sight of the person only counts after VISIBILITY_GRACE_MS;
- * - POSSIBLE_SLEEP is a cautious inference layered on LYING_DOWN that needs
- *   long lying + near stillness + eyes closed. Stillness alone is never sleep.
+ * - POSSIBLE_SLEEP is a cautious inference on top of a known position:
+ *   lying down needs long lying + near stillness + eyes closed; sitting needs
+ *   eyes closed for SEATED_DOZE_EYES_MS (dozing in the chair). Stillness alone
+ *   is never sleep, and without a visible face there's no eye evidence at all.
  */
 export class ActivitySmoother {
   private frames: Frame[] = [];
@@ -111,7 +113,7 @@ export class ActivitySmoother {
 
   /** The state underneath any sleep inference. */
   private baseState(): ActivityState {
-    return this.current.state === "POSSIBLE_SLEEP" ? "LYING_DOWN" : this.current.state;
+    return this.current.state === "POSSIBLE_SLEEP" ? (this.current.restingFrom ?? "LYING_DOWN") : this.current.state;
   }
 
   /** Confidence-weighted vote over the window. */
@@ -142,30 +144,39 @@ export class ActivitySmoother {
   }
 
   private withSleepInference(now: number): ActivityEstimate {
-    if (this.baseState() !== "LYING_DOWN") {
+    const base = this.baseState();
+    const awake: ActivityEstimate =
+      this.current.state === "POSSIBLE_SLEEP" ? { ...this.current, state: base, restingFrom: undefined } : this.current;
+    if (base !== "LYING_DOWN" && base !== "SITTING") {
       this.lyingSince = null;
       this.eyesClosedSince = null;
-      return this.current.state === "POSSIBLE_SLEEP" ? { ...this.current, state: "LYING_DOWN" } : this.current;
+      return awake;
     }
-    if (this.lyingSince === null) this.lyingSince = now;
+    this.lyingSince = base === "LYING_DOWN" ? (this.lyingSince ?? now) : null;
 
     const latestEyes = this.frames[this.frames.length - 1]?.eyesClosed ?? null;
     if (latestEyes !== null && latestEyes >= this.config.SLEEP_EYES_CLOSED_SCORE) {
       if (this.eyesClosedSince === null) this.eyesClosedSince = now;
     } else {
-      // Eyes open, or no face visible: no eye evidence, so no sleep inference.
+      // Eyes open (or a blink ended), or no face visible: no eye evidence, so no sleep inference.
       this.eyesClosedSince = null;
+    }
+    const eyesClosedMs = this.eyesClosedSince === null ? 0 : now - this.eyesClosedSince;
+
+    if (base === "SITTING") {
+      if (eyesClosedMs >= this.config.SEATED_DOZE_EYES_MS) {
+        return { state: "POSSIBLE_SLEEP", confidence: 0.6, estimated: true, reason: "Eyes closed for a while while sitting", restingFrom: "SITTING" };
+      }
+      return awake;
     }
 
     const moves = this.frames.map((f) => f.movement).filter((m): m is number => m !== null);
     const still = moves.length >= 3 && moves.reduce((a, b) => a + b, 0) / moves.length < this.config.STILL_MOVEMENT_SW;
-    const longLying = now - this.lyingSince >= this.config.SLEEP_MIN_LYING_MS;
-    const eyesLong = this.eyesClosedSince !== null && now - this.eyesClosedSince >= this.config.SLEEP_EYES_CLOSED_MS;
-
-    if (longLying && still && eyesLong) {
-      return { state: "POSSIBLE_SLEEP", confidence: 0.6, estimated: true, reason: "Lying still with eyes closed for a while" };
+    const longLying = now - (this.lyingSince ?? now) >= this.config.SLEEP_MIN_LYING_MS;
+    if (longLying && still && eyesClosedMs >= this.config.SLEEP_EYES_CLOSED_MS) {
+      return { state: "POSSIBLE_SLEEP", confidence: 0.6, estimated: true, reason: "Lying still with eyes closed for a while", restingFrom: "LYING_DOWN" };
     }
-    return { ...this.current, state: "LYING_DOWN" };
+    return awake;
   }
 }
 

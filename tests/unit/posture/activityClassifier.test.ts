@@ -153,7 +153,47 @@ describe("ActivitySmoother", () => {
     const frames = Math.ceil((ACTIVITY_CONFIG.SLEEP_MIN_LYING_MS + 30_000) / STEP);
     const e = run(s, lyingDown(), frames, 0, face(5, { eyesClosed: 0.95 }));
     expect(e.state).toBe("POSSIBLE_SLEEP");
+    expect(e.restingFrom).toBe("LYING_DOWN");
     expect(e.estimated).toBe(true);
+  });
+
+  it("recognizes dozing off in a chair after the eyes stay closed for a while", () => {
+    const s = new ActivitySmoother();
+    run(s, webcamUpright(), 5);
+    const frames = Math.ceil((ACTIVITY_CONFIG.SEATED_DOZE_EYES_MS + 2_000) / STEP);
+    const e = run(s, webcamUpright(), frames, 5 * STEP, face(8, { eyesClosed: 0.9 }));
+    expect(e.state).toBe("POSSIBLE_SLEEP");
+    expect(e.restingFrom).toBe("SITTING");
+  });
+
+  it("doesn't call a short eyes-closed moment while sitting dozing", () => {
+    const s = new ActivitySmoother();
+    run(s, webcamUpright(), 5);
+    expect(run(s, webcamUpright(), Math.ceil(10_000 / STEP), 5 * STEP, face(8, { eyesClosed: 0.9 })).state).toBe("SITTING");
+  });
+
+  it("blinking (eyes reopening) resets the dozing timer", () => {
+    const s = new ActivitySmoother();
+    run(s, webcamUpright(), 5);
+    let t = 5 * STEP;
+    let state = s.state;
+    for (let i = 0; i < 8; i++) {
+      // 20 s closed, then one open frame — never 30 s in a row.
+      state = run(s, webcamUpright(), 50, t, face(8, { eyesClosed: 0.9 }));
+      t += 50 * STEP;
+      state = run(s, webcamUpright(), 1, t, face(8, { eyesClosed: 0.1 }));
+      t += STEP;
+    }
+    expect(state.state).toBe("SITTING");
+  });
+
+  it("wakes from seated dozing back to sitting when the eyes open", () => {
+    const s = new ActivitySmoother();
+    const frames = Math.ceil((ACTIVITY_CONFIG.SEATED_DOZE_EYES_MS + 2_000) / STEP);
+    run(s, webcamUpright(), frames, 0, face(8, { eyesClosed: 0.9 }));
+    const e = run(s, webcamUpright(), 1, frames * STEP, face(8, { eyesClosed: 0.1 }));
+    expect(e.state).toBe("SITTING");
+    expect(e.restingFrom).toBeUndefined();
   });
 
   it("drops POSSIBLE_SLEEP as soon as the eyes open", () => {
